@@ -1,0 +1,36 @@
+export enum Events {
+    READY = "ready",
+    TRACK_ADD = "trackAdd",
+    TRACKS_ADD = "tracksAdd",
+    TRACK_START = "trackStart",
+    TRACK_ERROR = "trackError",
+    TRACK_FINISH = "trackEnd",
+    QUEUE_END = "queueEnd",
+    QUEUE_STATE_UPDATE = "queueStateUpdate",
+    VOICE_CONNECTION_READY = "connectionReady",
+    VOICE_CONNECTION_ERROR = "connectionError",
+    VOICE_CONNECTION_DISCONNECT = "connectionDisconnect",
+    AUDIO_PLAYER_ERROR = "audioPlayerError",
+    AUDIO_PLAYER_STATUS = "audioPlayerStatus",
+}
+export enum WSOpCodes {
+    HELLO = 0,
+    VOICE_STATE_UPDATE = 1,
+    IDENTIFY = 10,
+}
+
+export enum WSEvents {
+    READY = "READY",
+    TRACK_ADD = "TRACK_ADD",
+    TRACKS_ADD = "TRACKS_ADD",
+    TRACK_START = "TRACK_START",
+    TRACK_FINISH = "TRACK_FINISH",
+    TRACK_ERROR = "TRACK_ERROR",
+    QUEUE_END = "QUEUE_END",
+    QUEUE_STATE_UPDATE = "QUEUE_STATE_UPDATE",
+    VOICE_CONNECTION_READY = "VOICE_CONNECTION_READY",
+    VOICE_CONNECTION_ERROR = "VOICE_CONNECTION_ERROR",
+    VOICE_CONNECTION_DISCONNECT = "VOICE_CONNECTION_DISCONNECT",
+    AUDIO_PLAYER_ERROR = "AUDIO_PLAYER_ERROR",
+    AUDIO_PLAYER_STATUS = "AUDIO_PLAYER_STATUS",
+}
