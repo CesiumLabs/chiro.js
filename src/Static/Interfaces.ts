@@ -53,7 +53,7 @@ export interface SearchQuery {
     query: string;
 }
 export interface TrackData {
-    url: string;
+    url?: string;
     title?: string;
     thumbnail?: string;
     duration?: number;

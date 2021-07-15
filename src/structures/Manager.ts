@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import { Collection, Snowflake, User } from "discord.js";
+import { Collection, Constants, Snowflake, User } from "discord.js";
 import {
     ManagerOptions,
     PlayerOptions,
@@ -9,6 +9,7 @@ import {
 import { Node } from "./Node";
 import { Structure } from "./Utils";
 import { Player } from "./Player";
+import { WSEvents } from "../Static/Constants";
 export class Manager extends EventEmitter {
     /** The map of players */
     public readonly players = new Collection<Snowflake, Player>();
@@ -63,16 +64,19 @@ export class Manager extends EventEmitter {
             const identifier = SearchQuery.identifier || "ytsearch";
             const query = SearchQuery.query;
 
-            const res = await this.node.makeRequest(
-                `api/tracks/search?query=${encodeURIComponent(
-                    query
-                )}&identifier=${identifier}`,
-                "GET"
-            );
+            const res = await this.node
+                .makeRequest(
+                    `api/tracks/search?query=${encodeURIComponent(
+                        query
+                    )}&identifier=${identifier}`,
+                    "GET"
+                )
+                .then((res) => res.json());
+
             if (!res) {
                 return reject(new Error("Query not found"));
             }
-            // console.log(res);
+
             const SearchResult: SearchResult = this.resolveTrackData(
                 res,
                 requester
@@ -130,5 +134,35 @@ export class Manager extends EventEmitter {
 
     public destroyNode(): void {
         this.node.destroy();
+    }
+
+    public updateVoiceState(data: any): void {
+        if (
+            !data ||
+            !["VOICE_SERVER_UPDATE", "VOICE_STATE_UPDATE"].includes(
+                data.t || ""
+            )
+        )
+            return;
+        if (data.t === "VOICE_SERVER_UPDATE") {
+            this.node
+                .send({
+                    t: Constants.WSEvents.VOICE_SERVER_UPDATE,
+                    d: data,
+                })
+                .then((res) => {
+                    console.log(res);
+                });
+        }
+        if (data.t === "VOICE_STATE_UPDATE") {
+            this.node
+                .send({
+                    t: Constants.WSEvents.VOICE_STATE_UPDATE,
+                    d: data,
+                })
+                .then((res) => {
+                    console.log(res);
+                });
+        }
     }
 }

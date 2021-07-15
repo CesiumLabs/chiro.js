@@ -7,7 +7,7 @@ import { Queue } from "./Queue";
 
 export class Player {
     /** The Queue for the Player. */
-    public readonly queue = new (Structure.get("Queue"))() as Queue;
+    public queue = new (Structure.get("Queue"))() as Queue;
     /** Whether the queue repeats the track. */
     public trackRepeat = false;
     /** Whether the queue repeats the queue. */
@@ -77,13 +77,13 @@ export class Player {
         if (!this.voiceChannel)
             throw new RangeError("No voice channel has been set.");
 
-        const res = await this.node.makeRequest(
-            `api/subscription/${this.guild}/${this.voiceChannel}`,
-            "POST"
-        );
-
+        const res = await this.node
+            .makeRequest(
+                `api/subscription/${this.guild}/${this.voiceChannel}`,
+                "POST"
+            )
+            .then((res) => res.json());
         console.log(res);
-
         this.connected = true;
         return this;
     }
@@ -101,12 +101,19 @@ export class Player {
         return this;
     }
 
-    public play() {
+    public async play() {
+        if (!this.connected) {
+            await this.connect();
+        }
         if (!this.queue.current) throw new RangeError("Queue is empty");
         const track = this.queue.current;
-        this.node.makeRequest(`api/player/${this.guild}`, "POST", {
-            tracks: [{ url: track.url, initial: true }],
-        });
+
+        const res = await this.node
+            .makeRequest(`api/player/${this.guild}`, "POST", {
+                tracks: [{ url: track.url, initial: true }],
+            })
+            .then((res) => res.json());
+        console.log(res);
     }
 
     public setVolume(volume: number): void {

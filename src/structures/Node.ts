@@ -160,7 +160,6 @@ export class Node {
                     this.socket.send(JSON.stringify({ op: 10 }));
                     break;
                 case WSOpCodes.VOICE_STATE_UPDATE:
-                    console.log(payload);
                     this.manager.options.send(payload.d.d.guild_id, payload.d);
                     break;
                 default:
@@ -216,5 +215,18 @@ export class Node {
         }
         this.manager.emit(Events.TRACK_FINISH, player, track, payload);
         player.play();
+    }
+
+    public send(data: unknown): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            if (!this.connected) return resolve(false);
+            if (!data || !JSON.stringify(data).startsWith("{")) {
+                return reject(false);
+            }
+            this.socket.send(JSON.stringify(data), (error: Error) => {
+                if (error) reject(error);
+                else resolve(true);
+            });
+        });
     }
 }
