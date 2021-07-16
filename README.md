@@ -1,22 +1,21 @@
 <div align="center">
   <br />
   <p>
-    <a href="https://discord.js.org"><img src="https://menhera-chan.in/img/Chiro.JS.svg" width="546" alt="discord.js" /></a>
+    <a href="https://chirojs.openian.dev"><img src="https://menhera-chan.in/img/Chiro.JS.svg" width="546" alt="discord.js" /></a>
   </p>
   <br />
   <p>
-    <a href="https://discord.gg/djs"><img src="https://img.shields.io/discord/222078108977594368?color=5865F2&logo=discord&logoColor=white" alt="Discord server" /></a>
-    <a href="https://www.npmjs.com/package/discord.js"><img src="https://img.shields.io/npm/v/discord.js.svg?maxAge=3600" alt="NPM version" /></a>
-    <a href="https://www.npmjs.com/package/discord.js"><img src="https://img.shields.io/npm/dt/discord.js.svg?maxAge=3600" alt="NPM downloads" /></a>
-    <a href="https://github.com/discordjs/discord.js/actions"><img src="https://github.com/discordjs/discord.js/workflows/Testing/badge.svg" alt="Build status" /></a>
-    <a href="https://www.patreon.com/discordjs"><img src="https://img.shields.io/badge/donate-patreon-F96854.svg" alt="Patreon" /></a>
+    <a href="https://menhera-chan.in/support"><img src="https://img.shields.io/discord/735899211677041099?color=5865F2&logo=discord&logoColor=white" alt="Discord server" /></a>
+    <a href="https://www.npmjs.com/package/chiro.js"><img src="https://img.shields.io/npm/v/chiro.js.svg?maxAge=3600" alt="NPM version" /></a>
+    <a href="https://www.npmjs.com/package/chiro.js"><img src="https://img.shields.io/npm/dt/chiro.js.svg?maxAge=3600" alt="NPM downloads" /></a>
+    <a href="https://www.patreon.com/rohank05"><img src="https://img.shields.io/badge/donate-patreon-F96854.svg" alt="Patreon" /></a>
   </p>
 </div>
 
 ## About
 
-chiro.js is a powerful [Node.js](https://nodejs.org) module that allows you to easily interact with the
-[Nexus](https://discord.com/developers/docs/intro). Chiro.js is highly inspired from [Erela.JS]() which is a module for lavalink.
+Chiro.js is a powerful [Node.js](https://nodejs.org) module that allows you to easily interact with the
+[Nexus](https://github.com/DevSnowflake/Nexus). Chiro.js is highly inspired from [Erela.JS](https://github.com/MenuDocs/erela.js) which is a module for lavalink.
 
 
 ## Installation
@@ -77,15 +76,18 @@ client.login("token");
 
 ## Links
 
-- [Website](https://chiro.openian.dev/) ([source](https://github.com/discordjs/website))
-- [Documentation](chiro.openian.dev/#/docs/main/master/general/welcome)
+- [Website](https://chirojs.openian.dev/)
+- [Documentation](https://chirojs.openian.dev/)
 - [Discord server](https://menhera-chan.in/support)
 - [Nexus Discord server](https://discord.gg/snowflakedev)
-- [GitHub](https://github.com/discordjs/discord.js)
-- [NPM](https://www.npmjs.com/package/discord.js)
+- [GitHub](https://github.com/OpenianDevelopment/chiro.js)
+- [NPM](https://www.npmjs.com/package/chiro.js)
 
 
 ## Help
 
 If you don't understand something in the documentation, you are experiencing problems, or you just need a gentle
-nudge in the right direction, please don't hesitate to join our official [Chiro.js Server](https://discord.gg/djs).
+nudge in the right direction, please don't hesitate to join our official [Chiro.js Server](https://menhera-chan.in/support).
+
+## Notice
+The documentation is WIP. This is just a temporary docs

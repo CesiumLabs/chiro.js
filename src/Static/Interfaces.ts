@@ -1,33 +1,32 @@
-import { Node } from "../structures/Node";
-import { WSEvents, WSOpCodes } from "./Constants";
+import { WSEvents, WSOpCodes, Events } from "./Constants";
 import { User } from "discord.js";
-import { Player } from "../structures/Player";
-import { Queue } from "../structures/Queue";
-export interface Extendable {
-    Player: typeof Player;
-    Queue: typeof Queue;
-    Node: typeof Node;
-}
+
 export interface Payload {
+    /** Event Name */
     t?: WSEvents;
+    /** Event OP CODE */
     op?: WSOpCodes;
+    /** Data */
     d?: any;
 }
-export interface Manager {}
 
 export interface ManagerOptions {
+    /** Node need to connect */
     node?: NodeOptions;
+    /** Client ID */
     clientId?: string;
+    /** Send payload to guild */
     send(id: string, payload: Payload): void;
 }
 export interface PlayerOptions {
+    /** Server/Guild Id */
     guild: string;
+    /** Text Channel to send message in */
     textChannel: string;
-    voiceChannel?: string;
-    node?: string;
+    /** Voice Channel for client to connect */
+    voiceChannel: string;
+    /** Initial volume set for the client */
     volume?: number;
-    selfMute?: boolean;
-    selfDeafen?: boolean;
 }
 export interface NodeOptions {
     /** The host for the node. */
@@ -49,30 +48,48 @@ export interface NodeOptions {
 }
 
 export interface SearchQuery {
-    identifier: "ytsearch" | "scsearch" | "ytplaylist";
+    /** Identifier to mention what kind of search it is */
+    identifier?: "ytsearch" | "scsearch" | "ytplaylist";
+    /** Search Query and can be a link in case of identifier is a ytplaylist */
     query: string;
 }
 export interface TrackData {
-    url?: string;
-    title?: string;
+    /** Track URL */
+    url: string;
+    /** Track title */
+    title: string;
+    /** Track Image */
     thumbnail?: string;
+    /** Track duration */
     duration?: number;
+    /** Track author */
     author?: string;
+    /** uploaded date */
     created_at?: Date;
+    /** Website track is from */
     extractor?: string;
-    initial?: boolean;
-    requested_by?: string;
+    /** Who requested this track */
+    requested_by?: User;
 }
 export interface SearchResult {
+    /** Type of Search Result */
     type: "SEARCH_RESULT" | "PLAYLIST" | "NO_RESULT";
+    /** Playlist info in case it's a playlist */
     playlist?: PlaylistInfo;
+    /** All tracks got from the query */
     tracks: Array<TrackData>;
+    /** Who requested it */
     requester: User;
 }
 export interface PlaylistInfo {
+    /** Playlist ID */
     id: string;
+    /** Playlist title */
     title: string;
+    /** Playlist URL */
     url: string;
+    /** Playlist Author */
     author: string;
+    /** Source Website */
     extractor: string;
 }
