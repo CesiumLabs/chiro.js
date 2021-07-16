@@ -16,7 +16,7 @@
 ## About
 
 chiro.js is a powerful [Node.js](https://nodejs.org) module that allows you to easily interact with the
-[Nexus](https://discord.com/developers/docs/intro).
+[Nexus](https://discord.com/developers/docs/intro). Chiro.js is highly inspired from [Erela.JS]() which is a module for lavalink.
 
 
 ## Installation
