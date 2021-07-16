@@ -1,1 +1,91 @@
-<div align=\"center\">\n  <br />\n  <p>\n    <a href=\"https://discord.js.org\"><img src=\"https://discord.js.org/static/logo.svg\" width=\"546\" alt=\"discord.js\" /></a>\n  </p>\n  <br />\n  <p>\n    <a href=\"https://discord.gg/djs\"><img src=\"https://img.shields.io/discord/222078108977594368?color=5865F2&logo=discord&logoColor=white\" alt=\"Discord server\" /></a>\n    <a href=\"https://www.npmjs.com/package/discord.js\"><img src=\"https://img.shields.io/npm/v/discord.js.svg?maxAge=3600\" alt=\"NPM version\" /></a>\n    <a href=\"https://www.npmjs.com/package/discord.js\"><img src=\"https://img.shields.io/npm/dt/discord.js.svg?maxAge=3600\" alt=\"NPM downloads\" /></a>\n    <a href=\"https://github.com/discordjs/discord.js/actions\"><img src=\"https://github.com/discordjs/discord.js/workflows/Testing/badge.svg\" alt=\"Build status\" /></a>\n    <a href=\"https://www.patreon.com/discordjs\"><img src=\"https://img.shields.io/badge/donate-patreon-F96854.svg\" alt=\"Patreon\" /></a>\n  </p>\n</div>\n\n## About\n\ndiscord.js is a powerful [Node.js](https://nodejs.org) module that allows you to easily interact with the\n[Discord API](https://discord.com/developers/docs/intro).\n\n- Object-oriented\n- Predictable abstractions\n- Performant\n- 100% coverage of the Discord API\n\n## Installation\n\n**Node.js 14.0.0 or newer is required.**  \n\n```sh-session\nnpm install discord.js\n```\n\n### Optional packages\n\n- [zlib-sync](https://www.npmjs.com/package/zlib-sync) for WebSocket data compression and inflation (`npm install zlib-sync`)\n- [erlpack](https://github.com/discord/erlpack) for significantly faster WebSocket data (de)serialisation (`npm install discord/erlpack`)\n- [bufferutil](https://www.npmjs.com/package/bufferutil) for a much faster WebSocket connection (`npm install bufferutil`)\n- [utf-8-validate](https://www.npmjs.com/package/utf-8-validate) in combination with `bufferutil` for much faster WebSocket processing (`npm install utf-8-validate`)\n- [@discordjs/voice](https://github.com/discordjs/voice) for interacting with the Discord Voice API\n\n## Example usage\n\n```js\nconst { Client, Intents } = require('discord.js');\nconst client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });\n\nclient.on('ready', () => {\n  console.log(`Logged in as ${client.user.tag}!`);\n});\n\nclient.on('messageCreate', message => {\n  if (message.content === 'ping') {\n    message.channel.send('pong');\n  }\n});\n\nclient.login('token');\n```\n\n## Links\n\n- [Website](https://discord.js.org/) ([source](https://github.com/discordjs/website))\n- [Documentation](https://discord.js.org/#/docs/main/master/general/welcome)\n- [Guide](https://discordjs.guide/) ([source](https://github.com/discordjs/guide)) - this is still for stable  \n  See also the [Update Guide](https://discordjs.guide/additional-info/changes-in-v12.html), including updated and removed items in the library.\n- [Discord.js Discord server](https://discord.gg/djs)\n- [Discord API Discord server](https://discord.gg/discord-api)\n- [GitHub](https://github.com/discordjs/discord.js)\n- [NPM](https://www.npmjs.com/package/discord.js)\n- [Related libraries](https://discord.com/developers/docs/topics/community-resources#libraries)\n\n### Extensions\n\n- [RPC](https://www.npmjs.com/package/discord-rpc) ([source](https://github.com/discordjs/RPC))\n\n## Contributing\n\nBefore creating an issue, please ensure that it hasn't already been reported/suggested, and double-check the\n[documentation](https://discord.js.org/#/docs).  \nSee [the contribution guide](https://github.com/discordjs/discord.js/blob/master/.github/CONTRIBUTING.md) if you'd like to submit a PR.\n\n## Help\n\nIf you don't understand something in the documentation, you are experiencing problems, or you just need a gentle\nnudge in the right direction, please don't hesitate to join our official [Discord.js Server](https://discord.gg/djs).\n
+<div align="center">
+  <br />
+  <p>
+    <a href="https://discord.js.org"><img src="https://menhera-chan.in/img/Chiro.JS.svg" width="546" alt="discord.js" /></a>
+  </p>
+  <br />
+  <p>
+    <a href="https://discord.gg/djs"><img src="https://img.shields.io/discord/222078108977594368?color=5865F2&logo=discord&logoColor=white" alt="Discord server" /></a>
+    <a href="https://www.npmjs.com/package/discord.js"><img src="https://img.shields.io/npm/v/discord.js.svg?maxAge=3600" alt="NPM version" /></a>
+    <a href="https://www.npmjs.com/package/discord.js"><img src="https://img.shields.io/npm/dt/discord.js.svg?maxAge=3600" alt="NPM downloads" /></a>
+    <a href="https://github.com/discordjs/discord.js/actions"><img src="https://github.com/discordjs/discord.js/workflows/Testing/badge.svg" alt="Build status" /></a>
+    <a href="https://www.patreon.com/discordjs"><img src="https://img.shields.io/badge/donate-patreon-F96854.svg" alt="Patreon" /></a>
+  </p>
+</div>
+
+## About
+
+chiro.js is a powerful [Node.js](https://nodejs.org) module that allows you to easily interact with the
+[Nexus](https://discord.com/developers/docs/intro).
+
+
+## Installation
+
+**Node.js 14.0.0 or newer is required.**  
+
+```sh-session
+npm install chiro.js
+```
+
+## Example usage
+
+```js
+const { Client } = require("discord.js");
+const { Manager } = require("chiro.js");
+const client = new Client();
+const manager = new Manager({    
+    nodes:      
+        {
+            host: "localhost",
+            port: 3000,
+            password: "mostsecurepassword",
+        },
+    send(id, payload) {
+        const guild = client.guilds.cache.get(id);
+        if (guild) guild.shard.send(payload);
+    },
+}).on("trackStart", (player, track) => {
+    console.log(`${track.title} has started`);
+});
+
+client.on("ready", () => {
+    console.log(`Logged in as ${client.user.tag}!`);
+});
+
+client.on("messageCreate", async (message) => {
+    if (message.content === "play") {
+        const player = manager.create({
+            guild: message.guild.id,
+            textChannel: message.channel.id,
+            voiceChannel: message.member.voice.channel.id,
+        });
+        const res = await player.send({
+            query: "play that funky music",
+        });
+
+        player.queue.add(res.tracks[0]);
+        player.play();
+    }
+});
+
+client.on('raw', (d)=>{
+    manager.updateVoiceState(d);
+})
+
+client.login("token");
+```
+
+## Links
+
+- [Website](https://chiro.openian.dev/) ([source](https://github.com/discordjs/website))
+- [Documentation](chiro.openian.dev/#/docs/main/master/general/welcome)
+- [Discord server](https://menhera-chan.in/support)
+- [Nexus Discord server](https://discord.gg/snowflakedev)
+- [GitHub](https://github.com/discordjs/discord.js)
+- [NPM](https://www.npmjs.com/package/discord.js)
+
+
+## Help
+
+If you don't understand something in the documentation, you are experiencing problems, or you just need a gentle
+nudge in the right direction, please don't hesitate to join our official [Chiro.js Server](https://discord.gg/djs).
