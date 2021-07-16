@@ -11,7 +11,7 @@
         "welcome": {
           "name": "welcome",
           "type": "md",
-          "content": "<div align=\"center\">\n  <br />\n  <p>\n    <a href=\"https://discord.js.org\"><img src=\"https://menhera-chan.in/img/Chiro.JS.svg\" width=\"546\" alt=\"discord.js\" /></a>\n  </p>\n  <br />\n  <p>\n    <a href=\"https://discord.gg/djs\"><img src=\"https://img.shields.io/discord/222078108977594368?color=5865F2&logo=discord&logoColor=white\" alt=\"Discord server\" /></a>\n    <a href=\"https://www.npmjs.com/package/discord.js\"><img src=\"https://img.shields.io/npm/v/discord.js.svg?maxAge=3600\" alt=\"NPM version\" /></a>\n    <a href=\"https://www.npmjs.com/package/discord.js\"><img src=\"https://img.shields.io/npm/dt/discord.js.svg?maxAge=3600\" alt=\"NPM downloads\" /></a>\n    <a href=\"https://github.com/discordjs/discord.js/actions\"><img src=\"https://github.com/discordjs/discord.js/workflows/Testing/badge.svg\" alt=\"Build status\" /></a>\n    <a href=\"https://www.patreon.com/discordjs\"><img src=\"https://img.shields.io/badge/donate-patreon-F96854.svg\" alt=\"Patreon\" /></a>\n  </p>\n</div>\n\n## About\n\nchiro.js is a powerful [Node.js](https://nodejs.org) module that allows you to easily interact with the\n[Nexus](https://discord.com/developers/docs/intro).\n\n\n## Installation\n\n**Node.js 14.0.0 or newer is required.**  \n\n```sh-session\nnpm install chiro.js\n```\n\n## Example usage\n\n```js\nconst { Client } = require(\"discord.js\");\nconst { Manager } = require(\"chiro.js\");\nconst client = new Client();\nconst manager = new Manager({    \n    nodes:      \n        {\n            host: \"localhost\",\n            port: 3000,\n            password: \"mostsecurepassword\",\n        },\n    send(id, payload) {\n        const guild = client.guilds.cache.get(id);\n        if (guild) guild.shard.send(payload);\n    },\n}).on(\"trackStart\", (player, track) => {\n    console.log(`${track.title} has started`);\n});\n\nclient.on(\"ready\", () => {\n    console.log(`Logged in as ${client.user.tag}!`);\n});\n\nclient.on(\"messageCreate\", async (message) => {\n    if (message.content === \"play\") {\n        const player = manager.create({\n            guild: message.guild.id,\n            textChannel: message.channel.id,\n            voiceChannel: message.member.voice.channel.id,\n        });\n        const res = await player.send({\n            query: \"play that funky music\",\n        },message.author);\n\n        player.queue.add(res.tracks[0]);\n        player.play();\n    }\n});\n\nclient.on('raw', (d)=>{\n    manager.updateVoiceState(d);\n})\n\nclient.login(\"token\");\n```\n\n## Links\n\n- [Website](https://chiro.openian.dev/) ([source](https://github.com/discordjs/website))\n- [Documentation](chiro.openian.dev/#/docs/main/master/general/welcome)\n- [Discord server](https://menhera-chan.in/support)\n- [Nexus Discord server](https://discord.gg/snowflakedev)\n- [GitHub](https://github.com/discordjs/discord.js)\n- [NPM](https://www.npmjs.com/package/discord.js)\n\n\n## Help\n\nIf you don't understand something in the documentation, you are experiencing problems, or you just need a gentle\nnudge in the right direction, please don't hesitate to join our official [Chiro.js Server](https://discord.gg/djs)."
+          "content": "<div align=\"center\">\n  <br />\n  <p>\n    <a href=\"https://discord.js.org\"><img src=\"https://menhera-chan.in/img/Chiro.JS.svg\" width=\"546\" alt=\"discord.js\" /></a>\n  </p>\n  <br />\n  <p>\n    <a href=\"https://discord.gg/djs\"><img src=\"https://img.shields.io/discord/222078108977594368?color=5865F2&logo=discord&logoColor=white\" alt=\"Discord server\" /></a>\n    <a href=\"https://www.npmjs.com/package/discord.js\"><img src=\"https://img.shields.io/npm/v/discord.js.svg?maxAge=3600\" alt=\"NPM version\" /></a>\n    <a href=\"https://www.npmjs.com/package/discord.js\"><img src=\"https://img.shields.io/npm/dt/discord.js.svg?maxAge=3600\" alt=\"NPM downloads\" /></a>\n    <a href=\"https://github.com/discordjs/discord.js/actions\"><img src=\"https://github.com/discordjs/discord.js/workflows/Testing/badge.svg\" alt=\"Build status\" /></a>\n    <a href=\"https://www.patreon.com/discordjs\"><img src=\"https://img.shields.io/badge/donate-patreon-F96854.svg\" alt=\"Patreon\" /></a>\n  </p>\n</div>\n\n## About\n\nchiro.js is a powerful [Node.js](https://nodejs.org) module that allows you to easily interact with the\n[Nexus](https://discord.com/developers/docs/intro).\n\n\n## Installation\n\n**Node.js 14.0.0 or newer is required.**  \n\n```sh-session\nnpm install chiro.js\n```\n\n## Example usage\n\n```js\nconst { Client } = require(\"discord.js\");\nconst { Manager } = require(\"chiro.js\");\nconst client = new Client();\nconst manager = new Manager({    \n    nodes:      \n        {\n            host: \"localhost\",\n            port: 3000,\n            password: \"mostsecurepassword\",\n        },\n    send(id, payload) {\n        const guild = client.guilds.cache.get(id);\n        if (guild) guild.shard.send(payload);\n    },\n}).on(\"trackStart\", (player, track) => {\n    console.log(`${track.title} has started`);\n});\n\nclient.on(\"ready\", () => {\n    console.log(`Logged in as ${client.user.tag}!`);\n});\n\nclient.on(\"messageCreate\", async (message) => {\n    if (message.content === \"play\") {\n        const player = manager.create({\n            guild: message.guild.id,\n            textChannel: message.channel.id,\n            voiceChannel: message.member.voice.channel.id,\n        });\n        const res = await player.send({\n            query: \"play that funky music\",\n        },message.author);\n\n        player.queue.add(res.tracks[0]);\n        player.play();\n    }\n});\n\nclient.on('raw', (d)=>{\n    manager.updateVoiceState(d);\n})\n\nclient.login(\"token\");\n```\n\n## Links\n\n- [Website](https://chiro.openian.dev/) ([source](https://github.com/discordjs/website))\n- [Documentation](chiro.openian.dev/#/docs/main/master/general/welcome)\n- [Discord server](https://menhera-chan.in/support)\n- [Nexus Discord server](https://discord.gg/snowflakedev)\n- [GitHub](https://github.com/discordjs/discord.js)\n- [NPM](https://www.npmjs.com/package/discord.js)\n\n\n## Help\n\nIf you don't understand something in the documentation, you are experiencing problems, or you just need a gentle\nnudge in the right direction, please don't hesitate to join our official [Chiro.js Server](https://discord.gg/djs).",
           "path": "README.md"
         }
       }
@@ -71,7 +71,7 @@
                 "<"
               ],
               [
-                "string"
+                "string",
                 ","
               ],
               [
@@ -92,7 +92,7 @@
           "type": [
             [
               [
-                "ManagerOptions",
+                "ManagerOptions"
 
               ]
             ]
@@ -109,7 +109,7 @@
           "type": [
             [
               [
-                "string",
+                "string"
 
               ]
             ]
