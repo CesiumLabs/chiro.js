@@ -1,6 +1,12 @@
 import { WSEvents, WSOpCodes, Events } from "./Constants";
-import { User } from "discord.js";
+import { Snowflake, User } from "discord.js";
 
+/**
+ * @typedef Payload
+ * @param {string} t Event
+ * @param {string} op OPCode
+ * @param {any} d data
+ */
 export interface Payload {
     /** Event Name */
     t?: WSEvents;
@@ -14,13 +20,14 @@ export interface ManagerOptions {
     /** Node need to connect */
     node?: NodeOptions;
     /** Client ID */
-    clientId?: string;
+    clientId?: Snowflake;
     /** Send payload to guild */
-    send(id: string, payload: Payload): void;
+    send(id: Snowflake, payload: Payload): void;
 }
+
 export interface PlayerOptions {
     /** Server/Guild Id */
-    guild: string;
+    guild: Snowflake;
     /** Text Channel to send message in */
     textChannel: string;
     /** Voice Channel for client to connect */
@@ -28,6 +35,7 @@ export interface PlayerOptions {
     /** Initial volume set for the client */
     volume?: number;
 }
+
 export interface NodeOptions {
     /** The host for the node. */
     host: string;
@@ -53,6 +61,7 @@ export interface SearchQuery {
     /** Search Query and can be a link in case of identifier is a ytplaylist */
     query: string;
 }
+
 export interface TrackData {
     /** Track URL */
     url: string;
@@ -61,9 +70,9 @@ export interface TrackData {
     /** Track Image */
     thumbnail?: string;
     /** Track duration */
-    duration?: number;
+    duration: number;
     /** Track author */
-    author?: string;
+    author: string;
     /** uploaded date */
     created_at?: Date;
     /** Website track is from */
@@ -71,6 +80,7 @@ export interface TrackData {
     /** Who requested this track */
     requested_by?: User;
 }
+
 export interface SearchResult {
     /** Type of Search Result */
     type: "SEARCH_RESULT" | "PLAYLIST" | "NO_RESULT";
@@ -81,6 +91,7 @@ export interface SearchResult {
     /** Who requested it */
     requester: User;
 }
+
 export interface PlaylistInfo {
     /** Playlist ID */
     id: string;

@@ -11,172 +11,54 @@ import {
 import { Node } from "./Node";
 
 import { Player } from "./Player";
-import { Events } from "../Static/Constants";
 
-export interface Manager {
-    /**
-     * Emitted when a Node is created.
-     * @event nodeCreate
-     */
-    on(event: "nodeCreate", listener: (node: Node) => void): this;
-
-    /**
-     * Emitted when a Node is destroyed.
-     * @event nodeDestroy
-     */
-    on(event: "nodeDestroy", listener: (node: Node) => void): this;
-
-    /**
-     * Emitted when a Node connects.
-     * @event nodeConnect
-     */
-    on(event: "nodeConnect", listener: (node: Node) => void): this;
-
-    /**
-     * Emitted when a Node reconnects.
-     * @event nodeReconnect
-     */
-    on(event: "nodeReconnect", listener: (node: Node) => void): this;
-
-    /**
-     * Emitted when a Node disconnects.
-     * @event nodeDisconnect
-     */
-    on(
-        event: "nodeDisconnect",
-        listener: (
-            node: Node,
-            reason: { code?: number; reason?: string }
-        ) => void
-    ): this;
-
-    /**
-     * Emitted when a Node has an error.
-     * @event nodeError
-     */
-    on(event: "nodeError", listener: (node: Node, error: Error) => void): this;
-    /**
-     * Emitted when nexus is ready
-     * @event ready
-     */
-    on(event: Events.READY, listener: (payload: Payload) => void): this;
-    /**
-     * Emitted when a player is created.
-     * @event playerCreate
-     */
-    on(event: "playerCreate", listener: (player: Player) => void): this;
-
-    /**
-     * Emitted when a player is destroyed.
-     * @event playerDestroy
-     */
-    on(event: "playerDestroy", listener: (player: Player) => void): this;
-
-    /**
-     * Emitted when a player queue ends.
-     * @event Events#QUEUE_END
-     */
-    on(
-        event: "queueEnd",
-        listener: (player: Player, payload: Payload) => void
-    ): this;
-
-    /**
-     * Emitted when a track starts.
-     * @event Events#TRACK_START
-     */
-    on(
-        event: Events.TRACK_START,
-        listener: (player: Player, track: TrackData) => void
-    ): this;
-
-    /**
-     * Emitted when a track ends.
-     * @event Events#TRACK_FINISH
-     */
-    on(
-        event: Events.TRACK_FINISH,
-        listener: (player: Player, track: TrackData) => void
-    ): this;
-
-    /**
-     * Emitted when a track has an error during playback.
-     * @event Events#TRACK_ERROR
-     */
-    on(
-        event: Events.TRACK_ERROR,
-        listener: (player: Player, track: TrackData, payload: Payload) => void
-    ): this;
-
-    /**
-     * Emitted when a track is Added.
-     * @event Events#TRACK_ADD
-     */
-    on(
-        event: Events.TRACK_ADD,
-        listener: (player: Player, track: TrackData) => void
-    ): this;
-    /**
-     * Emitted when a tracks is Added.
-     * @event Events#TRACKS_ADD
-     */
-    on(
-        event: Events.TRACKS_ADD,
-        listener: (player: Player, track: TrackData[]) => void
-    ): this;
-    /**
-     * Emitted when a nexus player has an error.
-     * @event Events#AUDIO_PLAYER_ERROR
-     */
-    on(
-        event: Events.AUDIO_PLAYER_ERROR,
-        listener: (payload: Payload) => void
-    ): this;
-
-    /**
-     * Emitted when a Voice connection is disconnected.
-     * @event Events#VOICE_CONNECTION_DISCONNECT
-     */
-    on(
-        event: Events.VOICE_CONNECTION_DISCONNECT,
-        listener: (payload: Payload) => void
-    ): this;
-
-    /**
-     * Emitted when a Voice connection is ready.
-     * @event Events#VOICE_CONNECTION_READY
-     */
-    on(
-        event: Events.VOICE_CONNECTION_READY,
-        listener: (payload: Payload) => void
-    ): this;
-
-    /**
-     * Emitted when a Voice connection has error.
-     * @event Events#VOICE_CONNECTION_ERROR
-     */
-    on(
-        event: Events.VOICE_CONNECTION_ERROR,
-        listener: (payload: Payload) => void
-    ): this;
-}
+/**
+ * The Manager Class
+ * @extends {EventEmitter}
+ */
 
 export class Manager extends EventEmitter {
-    /** The map of players */
+    /**
+     * The Collection of Players in this Manager
+     * @type {Collection<Snowflake, Player>}
+     */
     public readonly players = new Collection<Snowflake, Player>();
-    /** The node */
+
+    /**
+     * The Node
+     * @type {Node}
+     */
     public node: Node;
-    /** The options for manager */
+
+    /**
+     * Manager class option
+     * @type {ManagerOptions}
+     */
     public readonly options: ManagerOptions;
-    /** To check whether manager is initiated or not */
+
+    /**
+     * If Manager Class initiated or not
+     * @type {boolean}
+     * @private
+     */
     private initiated = false;
-    /** Access Token */
+
+    /**
+     * Nexus Access Token for REST API Calls
+     * @type {string}
+     */
     public access_token: string;
 
     /**
-     * Contruct Manager class
-     * @Constructor
-     * @param options
+     * Creates new Manager Instance
+     * @param {ManagerOptions} options Manager Options
+     * @example
+     * const manager = new Manager({
+     *     node: {host: "localhost", port: 3000, password: "MySecurePassword"},
+     *     send(id, payload){
+     *          client.guilds.cache.get(id).shards.send(payload);
+     *     }
+     * })
      */
     constructor(options: ManagerOptions) {
         super();
@@ -194,11 +76,14 @@ export class Manager extends EventEmitter {
         }
     }
 
-    /** Init Manager
-     * @param clientId
-     * @return Manager
+    /**
+     * Init Manager
+     * @param {Snowflake} clientId Bot Application ID
+     * @return {Manager}
+     * @example
+     * manager.init(client.user.id);
      */
-    public init(clientId: string): this {
+    public init(clientId: Snowflake): this {
         if (this.initiated) return this;
         if (typeof clientId !== "undefined") this.options.clientId = clientId;
         this.node.connect();
@@ -206,12 +91,12 @@ export class Manager extends EventEmitter {
         return this;
     }
 
-    /** Searching or Getting YouTube songs and playlist
-     * @param SearchQuery
-     * @param requester
-     * @returns SearchResult
+    /**
+     * Searching or Getting YouTube songs and playlist
+     * @param {SearchQuery} SearchQuery Query Object
+     * @param {User} requester User Object
+     * @returns {SearchResult}
      */
-
     public search(
         SearchQuery: SearchQuery,
         requester: User
@@ -240,11 +125,14 @@ export class Manager extends EventEmitter {
             return resolve(SearchResult);
         });
     }
+
     /**
-     * Resolve Search Result from nexus into Interface SearchResult
-     * @param res search result
-     * @param requester user who searched
-     * @return SearchResult
+     * Internal Method to Resolve Search Result from nexus into Interface SearchResult
+     * @param {Object} res search result
+     * @param {User} requester user who searched
+     * @return {SearchResult}
+     * @private
+     * @ignore
      */
     private resolveTrackData(res: any, requester: User) {
         if (!res.results.length) {
@@ -281,14 +169,14 @@ export class Manager extends EventEmitter {
         }
     }
 
-    /** Build TrackData
-     *
-     * @param data
-     * @param requester
-     * @return TrackData
+    /**
+     * @ignore
+     * @description Internal method to encapsulate Track Data received from Nexus into {TrackData}
+     * @param {TrackData} data The Track details received from Nexus
+     * @param {User} requester The person who requested it
+     * @return {TrackData}
      * @private
      */
-
     private buildTrackData(data: TrackData, requester: User) {
         const track: TrackData = {
             url: data.url,
@@ -304,9 +192,10 @@ export class Manager extends EventEmitter {
     }
 
     /**
-     * Creates a player or returns one if it already exists.
-     * @param options
-     * @return Player
+     * Creates a player instance and add it to players collection
+     * @param {PlayerOptions} options Player Options
+     * @return {Player}
+     *
      */
     public create(options: PlayerOptions): Player {
         if (this.players.has(options.guild)) {
@@ -315,16 +204,28 @@ export class Manager extends EventEmitter {
         return new Player(options);
     }
 
-    public get(guild: string): Player | undefined {
+    /**
+     * Send Player
+     * @param {Snowflake} guild Id of Guild
+     * @return {Player}
+     */
+    public get(guild: Snowflake): Player | undefined {
         return this.players.get(guild);
     }
-    /** Destroy the current connection */
+    /**
+     * Destroy the Node connection
+     */
     public destroyNode(): void {
         this.node.destroy();
     }
+
     /**
-     * update voice state in nexus
-     * @param data
+     * Send Voice State Payload Received from Discord API to Nexus
+     * @param {Object} data
+     * @example
+     * client.on('raw', (d)=>{
+     *    manager.updateVoiceState(d);
+     * });
      */
     public updateVoiceState(data: any): void {
         if (
@@ -342,3 +243,145 @@ export class Manager extends EventEmitter {
         }
     }
 }
+
+/**
+ * Emitted when node connection is established
+ * @event Manager#nodeConnect
+ * @param {Node} node
+ */
+
+/**
+ * Emitted when node connection is diconnected
+ * @event Manager#nodeDisconnect
+ * @param {Node} node
+ */
+
+/**
+ * Emitted when node connection errors
+ * @event Manager#nodeError
+ * @param {Node} node
+ */
+
+/**
+ * Emitted when Nexus is Ready to play
+ * @event Manager#ready
+ */
+
+/**
+ * Emitted when track is added to the queue
+ * @event Manager#trackADD
+ * @param {Player} player
+ * @param {TrackData} Track
+ */
+
+/**
+ * Emitted when tracks is added to the queue
+ * @event Manager#tracksADD
+ * @param {Player} player
+ * @param {TrackData[]} Tracks
+ */
+
+/**
+ * Emitted when track is start playing
+ * @event Manager#trackStart
+ * @param {Player} player
+ * @param {TrackData} Track
+ */
+
+/**
+ * Emitted when track is ends
+ * @event Manager#trackEnd
+ * @param {Player} player
+ * @param {TrackData} Track
+ */
+
+/**
+ * Emitted when track errors
+ * @event Manager#trackError
+ * @param {Player} player
+ * @param {TrackData} Track
+ */
+
+/**
+ * Emitted when Queue ends
+ * @event Manager#queueEnd
+ * @param {Player} player
+ * @param {Payload} payload
+ */
+
+/**
+ * Emitted when Voice Connection is Ready
+ * @event Manager#voiceReady
+ * @param {Payload} payload
+ */
+
+/**
+ * Emitted when Voice Connection is disconnected
+ * @event Manager#voiceDisconnect
+ * @param {Payload} payload
+ */
+
+/**
+ * Emitted when Voice Connection error
+ * @event Manager#voiceError
+ * @param {Payload} payload
+ */
+
+/**
+ * Emitted when Audio Player Errors
+ * @event Manager#audioPlayerError
+ * @param {Payload} payload
+ */
+
+/**
+ * @typedef {Object} ManagerOptions
+ * @param {NodeOptions} [node] Node Options
+ * @param {Snowflake} [clientId] Bot Application ID
+ */
+
+/**
+ * A Twitter snowflake, except the epoch is 2015-01-01T00:00:00.000Z
+ * ```
+ * If we have a snowflake '266241948824764416' we can represent it as binary:
+ *
+ * 64                                          22     17     12          0
+ *  000000111011000111100001101001000101000000  00001  00000  000000000000
+ *       number of ms since Discord epoch       worker  pid    increment
+ * ```
+ * @typedef {string} Snowflake
+ */
+
+/**
+ * @typedef {Object} SearchQuery
+ * @param {string} identifier='ytsearch' Identifier of type of query
+ * @param {string} query Query to be searched for
+ */
+
+/**
+ * @typedef {Object} SearchResult
+ * @param {string} type Type Of Search Result
+ * @param {PlaylistInfo} [playlist] Playlist info
+ * @param {Array<TrackData>} Array of Tracks
+ * @param {User} requester User who requested it
+ */
+
+/**
+ * @typedef {Object} PlaylistInfo
+ * @param {string} id  ID Of Playlist
+ * @param {string} title Title of Playlist
+ * @param {string} url URL of Playlist
+ * @param {string} author Uploader of the playlist
+ * @param {string} extractor Website playlist is fetched from
+ */
+
+/**
+ * @typedef {Object} TrackData
+ * @param {string} url URL of the Track
+ * @param {string} title Title of the Track
+ * @param {string} [thumbnail] Image of the Track
+ * @param {number} duration Duration of the Track
+ * @param {string} author Uploader of the Track
+ * @param {Date} created_at Track upload date
+ * @param {string} extractor Website track is fetched from
+ * @param {User} requested_by User who requested it
+ */

@@ -6,43 +6,65 @@ import fetch from "node-fetch";
 import { Events, WSEvents, WSOpCodes } from "../Static/Constants";
 import { Player } from "./Player";
 
+/**
+ * The Node Class
+ */
 export class Node {
-    /** The socket for the node */
+    /**
+     * Websocket
+     * @type {WebSocket}
+     */
     public socket: WebSocket | null = null;
     /**
      * The Manager
+     * @type {Manager}
      */
     public manager: Manager;
-    /** Static Manager
-     * @hidden
+    /**
+     * Static Manager
+     * @type {Manager}
+     * @ignore
+     * @private
      */
     private static _manager: Manager;
     /**
-     * @hidden
+     * Reconnect Timeout
+     * @type {NodeJS.Timeout}
+     * @ignore
+     * @private
      */
     private reconnectTimeout?: NodeJS.Timeout;
-    /** Static Manager
-     * @hidden
+    /**
+     * Reconnect Attempts
+     * @type Number
+     * @ignore
+     * @private
      */
-    private reconnectAttempts = 1;
+    private reconnectAttempts: number = 1;
 
     /**
-     * Returns if node is socket is ready or not
-     * @return boolean
+     * Check if socket is ready
+     * @type {void}
+     * @ignore
+     * @return {boolean}
      */
     public get connected(): boolean {
         if (!this.socket) return false;
         return this.socket.readyState === WebSocket.OPEN;
     }
-    /** @hidden */
+
+    /**
+     * @ignore
+     * @param {Manager} manager Manager
+     */
     public static init(manager: Manager): void {
         this._manager = manager;
     }
 
-    /** Construct Node
+    /**
+     * Node Constructor
      * @hideconstructor
-     * @hidden
-     * @param options
+     * @param {NodeOptions} options Node Options
      */
     constructor(public options: NodeOptions) {
         if (!this.manager) this.manager = Node._manager;
@@ -66,7 +88,7 @@ export class Node {
 
     /**
      * Creates a WS connection with Websocket
-     * @hidden
+     * @ignore
      */
     public connect(): void {
         if (this.connected) return;
@@ -107,10 +129,10 @@ export class Node {
 
     /**
      * Make REST API Request to Nexus
-     * @param uriComponent
-     * @param type
-     * @param body
-     * @return Promise<any>
+     * @param {string} uriComponent URL Components to be added to base URL
+     * @param {string} type Type of Call to make
+     * @param {Object} body Body Object to send to REST API
+     * @return {Promise}
      */
     public async makeRequest(
         uriComponent: string,
@@ -143,6 +165,7 @@ export class Node {
     /**
      * Reconnect in case WS Connection fails
      * @hidden
+     * @ignore
      * @private
      */
     private reconnect(): void {
@@ -166,6 +189,7 @@ export class Node {
     /**
      * Emit Event called nodeConnect when socket is open
      * @protected
+     * @ignore
      */
     protected open(): void {
         if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout);
@@ -174,9 +198,10 @@ export class Node {
 
     /**
      * Emit Event called nodeDisconnect when socket is closed
-     * @param code
-     * @param reason
+     * @param {number} code Close Code
+     * @param {string} reason Reason
      * @protected
+     * @ignore
      */
     protected close(code: number, reason: string): void {
         this.manager.emit("nodeDisconnect", this, { code, reason });
@@ -185,8 +210,9 @@ export class Node {
 
     /**
      * Emit Event called nodeError when there is an error with socket connection
-     * @param error
+     * @param {Error} error Error
      * @protected
+     * @ignore
      */
     protected error(error: Error): void {
         if (!error) return;
@@ -195,8 +221,9 @@ export class Node {
 
     /**
      * Handles the WS connection message
-     * @param d
+     * @param {Buffer | string} data Data Buffer
      * @protected
+     * @ignore
      */
     protected message(d: Buffer | string): void {
         if (Array.isArray(d)) d = Buffer.concat(d);
@@ -257,8 +284,9 @@ export class Node {
 
     /**
      * handle TrackEvents
-     * @param payload
+     * @param {Payload} payload Payload
      * @protected
+     * @ignore
      */
     protected handleTrackEvent(payload: Payload) {
         const player = this.manager.players.get(payload.d.guild_id);
@@ -278,10 +306,11 @@ export class Node {
 
     /**
      * When Track Start emit the event trackstart
-     * @param player
-     * @param track
-     * @param payload
+     * @param {Player} player Player
+     * @param {TrackData} track Track
+     * @param {Payload} payload payload
      * @protected
+     * @ignore
      */
     protected trackStart(
         player: Player,
@@ -295,10 +324,11 @@ export class Node {
 
     /**
      * Emit event QueueEnd and TrackEnd
-     * @param player
-     * @param track
-     * @param payload
+     * @param {Player} player Player
+     * @param {Track} track Track
+     * @param {Payload} payload Payload
      * @protected
+     * @ignore
      */
     protected trackEnd(
         player: Player,
@@ -331,18 +361,25 @@ export class Node {
     }
 
     /**
-     * @param player
-     * @param payload
+     * @param {Player} player Player
+     * @param {Payload} payload Payload
      * @protected
+     * @ignore
      */
-    protected queueEnd(player, payload) {
+    protected queueEnd(player: Player, payload: Payload) {
         this.manager.emit(Events.QUEUE_END, player, payload);
     }
 
     /**
-     * send payload to the nexus using ws
-     * @param data
-     * @return Promise<boolean>
+     * Send payload to the nexus using ws
+     * @param {Object} data Payload to send to WS
+     * @return {Promise<boolean>}
+     * @example
+     * const payload = {"op": 10, d: null}
+     * <Player>.node.send(payload)
+     * @example
+     * const payload = {"op": 10, d: null}
+     * <Manager>.node.send(payload)
      */
     public send(data: unknown): Promise<boolean> {
         return new Promise((resolve, reject) => {
@@ -357,3 +394,15 @@ export class Node {
         });
     }
 }
+
+/**
+ * @typedef {Object} NodeOptions
+ * @param {string} host='localhost' Hostname of Nexus Node
+ * @param {number} port='3000' Port of Nexus
+ * @param {string} password Password for Nexus
+ * @param {boolean} secure=false If Nexus has ssl
+ * @param {string} identifier Identifier for nexus
+ * @param {number} [retryAmount] Retry Amount
+ * @param {number} [retryDelay] Retry Delay
+ * @param {number} [requestTimeout] Request Timeout
+ */

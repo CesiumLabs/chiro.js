@@ -2,46 +2,94 @@ import { Manager } from "./Manager";
 import { Node } from "./Node";
 import { PlayerOptions, SearchQuery, SearchResult } from "../Static/Interfaces";
 
-import { User } from "discord.js";
+import { Snowflake, User } from "discord.js";
 import { Queue } from "./Queue";
 
+/**
+ * The Player Class
+ */
 export class Player {
-    /** The Queue for the Player. */
+    /**
+     * Queue for the player
+     * @type {Queue}
+     */
     public queue = new Queue() as Queue;
-    /** Whether the queue repeats the track. */
+    /**
+     * Track Repeat
+     * @type {boolean}
+     */
     public trackRepeat = false;
-    /** Whether the queue repeats the queue. */
+    /**
+     * Queue Repeat
+     * @type {boolean}
+     */
     public queueRepeat = false;
-    /** Whether the player is playing. */
+    /**
+     * Whether the player is playing.
+     * @type {boolean}
+     */
     public playing = false;
-    /** Whether the player is paused. */
+    /**
+     * Whether the player is paused.
+     * @type {boolean}
+     */
     public paused = false;
-    /** Whether the player is playing. */
+    /**
+     * Player Volume.
+     * @type {number}
+     */
     public volume: number;
-    /** The Node for the Player. */
+    /**
+     * The Node
+     * @type {Node}
+     */
     public node: Node;
-    /** The guild the player. */
-    public guild: string;
-    /** The voice channel for the player. */
+    /**
+     * Guild
+     * @type Snowflake
+     */
+    public guild: Snowflake;
+    /**
+     * The voice channel
+     * @type {string}
+     */
     public voiceChannel: string | null = null;
-    /** The text channel for the player. */
+    /**
+     * The text channel for the player.
+     * @type {string}
+     */
     public textChannel: string | null = null;
-    /** The Manager. */
+    /** The Manager.
+     * @type {Manager}
+     */
     public manager: Manager;
-    /** @hidden */
+    /**
+     * @ignore
+     * @private
+     */
     private static _manager: Manager;
-    /** @hidden */
+    /**
+     * PLayer Connected
+     * @type {boolean}
+     * @hidden
+     * @ignore
+     */
     private connected: boolean = false;
 
-    /** @hidden */
+    /**
+     * Static Init
+     * @type {void}
+     * @param {Manager} manager Manager
+     * @ignore
+     */
     public static init(manager: Manager): void {
         this._manager = manager;
     }
 
     /**
-     * Creates a new player
-     * @Constructor
-     * @param options
+     * Creates a new player instace     *
+     * @param {PlayerOptions} options Player Options
+     * @hideconstructor
      */
     constructor(public options: PlayerOptions) {
         if (!this.manager) this.manager = Player._manager;
@@ -64,8 +112,15 @@ export class Player {
 
     /**
      * Adding Manager#search for shortcut
-     * @param SearchQuery
-     * @param requester
+     * @param {SearchQuery} SearchQuery Search Query
+     * @param {User} requester Person who requested it
+     * @return {Promise<SearchResult>}
+     * @example
+     * const res = await player.search({
+     *     query: "Play that funky Music",
+     *     identifier: "ytsearch"
+     * },message.author)
+     * console.log(res);
      */
     public search(
         SearchQuery: SearchQuery,
@@ -91,7 +146,9 @@ export class Player {
         this.manager.emit("playerCreate", this);
     }
 
-    /** Disconnect to voice channel */
+    /**
+     * Disconnect to voice channel
+     */
     public disconnect(): this {
         if (!this.voiceChannel) return this;
         if (this.playing) {
@@ -108,7 +165,9 @@ export class Player {
 
         return this;
     }
-    /** Play the songs added in the queue */
+    /**
+     * Play the songs added in the queue
+     */
     public play() {
         if (!this.connected) {
             this.connect();
@@ -124,7 +183,10 @@ export class Player {
             .then((res) => res);
         this.playing = true;
     }
-    /** Set the volume of the player */
+    /**
+     * Set the volume of the player
+     * @param {number} volume Volume of the player
+     */
     public setVolume(volume: number): void {
         this.volume = volume;
         this.node
@@ -133,7 +195,9 @@ export class Player {
             })
             .then((res) => res);
     }
-    /** Destroy the player */
+    /**
+     * Destroy the player
+     */
     public destroy(): void {
         if (this.playing) {
             this.stop();
@@ -142,7 +206,9 @@ export class Player {
         this.manager.emit("playerDestroy", this);
         this.manager.players.delete(this.guild);
     }
-    /** Clear the queue and stop the player */
+    /**
+     * Clear the queue and stop the player
+     */
     public stop(): void {
         this.queue.current = null;
         this.queue.previous = null;
@@ -151,10 +217,20 @@ export class Player {
         this.skip();
         this.destroy();
     }
-    /** Skip the current playing song */
+    /**
+     * Skip the current playing song
+     */
     public skip(): void {
         this.node
             .makeRequest(`api/player/${this.guild}`, "DELETE")
             .then((res) => res);
     }
 }
+
+/**
+ * @typedef {Object} PlayerOptions
+ * @param {Snowflake} guild ID of the guild
+ * @param {Snowflake} textChannel Id of text channel
+ * @param {Snowflake} voiceChannel ID of voice channel
+ * @param {number} [volume] Initial volume
+ */
