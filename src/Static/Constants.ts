@@ -1,16 +1,3 @@
-export enum Events {
-    READY = "ready",
-    TRACK_ADD = "trackAdd",
-    TRACKS_ADD = "tracksAdd",
-    TRACK_START = "trackStart",
-    TRACK_ERROR = "trackError",
-    TRACK_FINISH = "trackEnd",
-    QUEUE_END = "queueEnd",
-    VOICE_CONNECTION_READY = "voiceReady",
-    VOICE_CONNECTION_ERROR = "voiceError",
-    VOICE_CONNECTION_DISCONNECT = "voiceDisconnect",
-    AUDIO_PLAYER_ERROR = "audioPlayerError",
-}
 export enum WSOpCodes {
     HELLO = 0,
     VOICE_STATE_UPDATE = 1,

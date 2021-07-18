@@ -3,7 +3,7 @@ import { NodeOptions, Payload, TrackData } from "../Static/Interfaces";
 
 import WebSocket from "ws";
 import fetch from "node-fetch";
-import { Events, WSEvents, WSOpCodes } from "../Static/Constants";
+import { WSEvents, WSOpCodes } from "../Static/Constants";
 import { Player } from "./Player";
 
 /**
@@ -178,6 +178,7 @@ export class Node {
                 this.manager.emit("nodeError", this, error);
                 return this.destroy();
             }
+            console.log(`RECONNECTING......`);
             this.socket.removeAllListeners();
             this.socket = null;
             this.manager.emit("nodeReconnect", this);
@@ -221,7 +222,7 @@ export class Node {
 
     /**
      * Handles the WS connection message
-     * @param {Buffer | string} data Data Buffer
+     * @param {Buffer | string} d Data Buffer
      * @protected
      * @ignore
      */
@@ -249,20 +250,18 @@ export class Node {
         if (payload.t !== undefined) {
             switch (payload.t) {
                 case WSEvents.READY:
+                    console.log("Identified");
                     this.manager.access_token = payload.d.access_token;
-                    this.manager.emit(Events.READY, payload);
+                    this.manager.emit("ready", payload);
                     break;
                 case WSEvents.VOICE_CONNECTION_READY:
-                    this.manager.emit(Events.VOICE_CONNECTION_READY, payload);
+                    this.manager.emit("voiceReady", payload);
                     break;
                 case WSEvents.VOICE_CONNECTION_ERROR:
-                    this.manager.emit(Events.VOICE_CONNECTION_ERROR, payload);
+                    this.manager.emit("voiceError", payload);
                     break;
                 case WSEvents.VOICE_CONNECTION_DISCONNECT:
-                    this.manager.emit(
-                        Events.VOICE_CONNECTION_DISCONNECT,
-                        payload
-                    );
+                    this.manager.emit("voiceError", payload);
                     break;
                 case WSEvents.TRACK_START:
                     this.handleTrackEvent(payload);
@@ -277,7 +276,7 @@ export class Node {
                     this.handleTrackEvent(payload);
                     break;
                 case WSEvents.AUDIO_PLAYER_ERROR:
-                    this.manager.emit(Events.AUDIO_PLAYER_ERROR, payload);
+                    this.manager.emit("audioPlayerError", payload);
             }
         }
     }
@@ -299,7 +298,7 @@ export class Node {
             this.trackEnd(player, track, payload);
         }
         if (payload.t === WSEvents.TRACK_ERROR) {
-            this.manager.emit(Events.TRACK_ERROR, payload);
+            this.manager.emit("trackError", payload);
             this.trackEnd(player, track, payload);
         }
     }
@@ -319,13 +318,13 @@ export class Node {
     ): void {
         player.playing = true;
         player.paused = false;
-        this.manager.emit(Events.TRACK_START, player, track, payload);
+        this.manager.emit("trackStart", player, track, payload);
     }
 
     /**
      * Emit event QueueEnd and TrackEnd
      * @param {Player} player Player
-     * @param {Track} track Track
+     * @param {TrackData} track Track
      * @param {Payload} payload Payload
      * @protected
      * @ignore
@@ -337,7 +336,7 @@ export class Node {
     ): void {
         if (track && player.trackRepeat) {
             if (!player.queue.current) return this.queueEnd(player, payload);
-            this.manager.emit(Events.TRACK_FINISH, player, track);
+            this.manager.emit("trackEnd", player, track);
             player.play();
             return;
         }
@@ -346,14 +345,14 @@ export class Node {
             player.queue.previous = player.queue.current;
             player.queue.current = player.queue.shift();
             player.queue.add(player.queue.previous);
-            this.manager.emit(Events.TRACK_FINISH, player, track);
+            this.manager.emit("trackEnd", player, track);
             player.play();
             return;
         }
         if (player.queue.length) {
             player.queue.previous = player.queue.current;
             player.queue.current = player.queue.shift();
-            this.manager.emit(Events.TRACK_FINISH, player, track);
+            this.manager.emit("trackEnd", player, track);
             player.play();
             return;
         }
@@ -367,7 +366,7 @@ export class Node {
      * @ignore
      */
     protected queueEnd(player: Player, payload: Payload) {
-        this.manager.emit(Events.QUEUE_END, player, payload);
+        this.manager.emit("queueEnd", player, payload);
     }
 
     /**

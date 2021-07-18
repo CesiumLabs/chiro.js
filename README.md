@@ -48,10 +48,11 @@ const manager = new Manager({
 });
 
 client.on("ready", () => {
+    manager.init(client.user.id);
     console.log(`Logged in as ${client.user.tag}!`);
 });
 
-client.on("messageCreate", async (message) => {
+client.on("message", async (message) => {
     if (message.content === "play") {
         const player = manager.create({
             guild: message.guild.id,

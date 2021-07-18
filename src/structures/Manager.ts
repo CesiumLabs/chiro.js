@@ -15,6 +15,13 @@ import { Player } from "./Player";
 /**
  * The Manager Class
  * @extends {EventEmitter}
+ * @example
+ * const manager = new Manager({
+ *     node: {host: "localhost", port: 3000, password: "MySecurePassword"},
+ *     send(id, payload){
+ *          client.guilds.cache.get(id).shards.send(payload);
+ *     }
+ * })
  */
 
 export class Manager extends EventEmitter {
@@ -96,6 +103,9 @@ export class Manager extends EventEmitter {
      * @param {SearchQuery} SearchQuery Query Object
      * @param {User} requester User Object
      * @returns {SearchResult}
+     * @example
+     * const res = await player.search({query: "Play that funky music"}, message.author);
+     * console.log(res);
      */
     public search(
         SearchQuery: SearchQuery,

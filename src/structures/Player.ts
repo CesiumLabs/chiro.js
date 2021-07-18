@@ -1,6 +1,11 @@
 import { Manager } from "./Manager";
 import { Node } from "./Node";
-import { PlayerOptions, SearchQuery, SearchResult } from "../Static/Interfaces";
+import {
+    PlayerOptions,
+    SearchQuery,
+    SearchResult,
+    TrackData,
+} from "../Static/Interfaces";
 
 import { Snowflake, User } from "discord.js";
 import { Queue } from "./Queue";
@@ -142,7 +147,6 @@ export class Player {
                 "POST"
             )
             .then((res) => res);
-        this.connected = true;
         this.manager.emit("playerCreate", this);
     }
 
@@ -169,19 +173,47 @@ export class Player {
      * Play the songs added in the queue
      */
     public play() {
+        if (!this.queue.current) throw new RangeError("Queue is empty");
+        const track = this.queue.current;
         if (!this.connected) {
             this.connect();
         }
+        const connectInterval = setInterval(() => {
+            if (this.connected) {
+                this.sendPlayPost(track);
+                clearInterval(connectInterval);
+            }
+        }, 1000);
+    }
 
-        if (!this.queue.current) throw new RangeError("Queue is empty");
-        const track = this.queue.current;
-
+    /**
+     * Send POST request to NEXUS to play the song
+     * @param {TrackData} track Track to Play the song
+     * @private
+     */
+    private sendPlayPost(track: TrackData) {
         this.node
             .makeRequest(`api/player/${this.guild}`, "POST", {
-                tracks: [{ url: track.url, initial: true }],
+                track: {
+                    url: track.url,
+                },
             })
             .then((res) => res);
         this.playing = true;
+    }
+
+    /**
+     * Send filter to Nexus
+     * @param {string} filter Music Filter to Apply
+     */
+    public applyFilters(filter: string) {
+        this.node
+            .makeRequest(`api/player/${this.guild}`, "PATCH", {
+                data: { encoder_args: ["-af", filter] },
+            })
+            .then((res) => {
+                if (!res.ok) console.log();
+            });
     }
     /**
      * Set the volume of the player

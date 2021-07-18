@@ -16,7 +16,7 @@ export class Queue extends Array<TrackData> {
 
     /**
      * Add songs to the queue
-     * @param {TrackData | TrackData[]}
+     * @param {TrackData | TrackData[]} track Track to add to queue
      */
     public add(track: TrackData | TrackData[]) {
         if (!this.current) {

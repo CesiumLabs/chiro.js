@@ -1,6 +1,6 @@
 {
   "name": "chiro.js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A easy to use client for nexus",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -35,5 +35,8 @@
     "chiro.js"
   ],
   "repository": "OpenianDevelopment/chiro.js",
-  "bugs": "https://github.com/OpenianDevelopment/chiro.js"
+  "bugs": "https://github.com/OpenianDevelopment/chiro.js",
+  "scripts": {
+    "docs": "docgen --jsdoc jsdoc.json --verbose --source src/*.ts src/**/*.ts --output main.json"
+  }
 }

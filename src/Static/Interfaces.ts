@@ -1,4 +1,4 @@
-import { WSEvents, WSOpCodes, Events } from "./Constants";
+import { WSEvents, WSOpCodes } from "./Constants";
 import { Snowflake, User } from "discord.js";
 
 /**
