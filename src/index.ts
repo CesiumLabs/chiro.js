@@ -6,3 +6,5 @@ export { Queue } from "./structures/Queue";
 
 //Exporting Interfaces
 export * from "./Static/Interfaces";
+
+export * from "./Static/Constants";

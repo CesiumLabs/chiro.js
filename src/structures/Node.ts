@@ -236,7 +236,7 @@ export class Node {
             switch (payload.op) {
                 case WSOpCodes.HELLO:
                     console.log(
-                        "Hello Recieved from Nexus\nSending Identifiy OP Code"
+                        "Hello Received from Nexus\nSending Identify OP Code"
                     );
                     this.socket.send(JSON.stringify({ op: 10 }));
                     break;

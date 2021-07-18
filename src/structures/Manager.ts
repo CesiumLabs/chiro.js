@@ -261,7 +261,7 @@ export class Manager extends EventEmitter {
  */
 
 /**
- * Emitted when node connection is diconnected
+ * Emitted when node connection is disconnected
  * @event Manager#nodeDisconnect
  * @param {Node} node
  */
@@ -369,7 +369,7 @@ export class Manager extends EventEmitter {
 
 /**
  * @typedef {Object} SearchResult
- * @param {string} type Type Of Search Result
+ * @param {SEARCH_RESULT | PLAYLIST | NO_RESULT} type Type Of Search Result
  * @param {PlaylistInfo} [playlist] Playlist info
  * @param {Array<TrackData>} Array of Tracks
  * @param {User} requester User who requested it

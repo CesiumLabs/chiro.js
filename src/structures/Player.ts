@@ -9,6 +9,7 @@ import {
 
 import { Snowflake, User } from "discord.js";
 import { Queue } from "./Queue";
+import { Filters } from "../Static/Constants";
 
 /**
  * The Player Class
@@ -92,7 +93,7 @@ export class Player {
     }
 
     /**
-     * Creates a new player instace     *
+     * Creates a new player instance     *
      * @param {PlayerOptions} options Player Options
      * @hideconstructor
      */
@@ -204,15 +205,15 @@ export class Player {
 
     /**
      * Send filter to Nexus
-     * @param {string} filter Music Filter to Apply
+     * @param {Filters} filter Music Filter to Apply
      */
-    public applyFilters(filter: string) {
+    public applyFilters(filter: Filters) {
         this.node
             .makeRequest(`api/player/${this.guild}`, "PATCH", {
                 data: { encoder_args: ["-af", filter] },
             })
             .then((res) => {
-                if (!res.ok) console.log();
+                if (!res.ok) console.log(res);
             });
     }
     /**
@@ -265,4 +266,37 @@ export class Player {
  * @param {Snowflake} textChannel Id of text channel
  * @param {Snowflake} voiceChannel ID of voice channel
  * @param {number} [volume] Initial volume
+ */
+
+/**
+ * The available audio filters
+ * @typedef {string} Filters
+ * @property {string} bassboost The bassboost filter
+ * @property {string} 8D The 8D filter
+ * @property {string} vaporwave The vaporwave filter
+ * @property {string} nightcore The nightcore filter
+ * @property {string} phaser The phaser filter
+ * @property {string} tremolo The tremolo filter
+ * @property {string} vibrato The vibrato filter
+ * @property {string} reverse The reverse filter
+ * @property {string} treble The treble filter
+ * @property {string} normalizer The normalizer filter
+ * @property {string} surrounding The surrounding filter
+ * @property {string} pulsator The pulsator filter
+ * @property {string} subboost The subboost filter
+ * @property {string} kakaoke The kakaoke filter
+ * @property {string} flanger The flanger filter
+ * @property {string} gate The gate filter
+ * @property {string} haas The haas filter
+ * @property {string} mcompand The mcompand filter
+ * @property {string} mono The mono filter
+ * @property {string} mstlr The mstlr filter
+ * @property {string} mstrr The mstrr filter
+ * @property {string} chorus The chorus filter
+ * @property {string} chorus2d The chorus2d filter
+ * @property {string} chorus3d The chorus3d filter
+ * @property {string} fadein The fadein filter
+ * @property {string} compressor The compressor filter
+ * @property {string} expander The expander filter
+ * @property {string} softlimiter The softlimiter filter
  */
