@@ -38,6 +38,7 @@
   "repository": "https://github.com/DevSnowflake/chiro.js",
   "bugs": "https://github.com/DevSnowflake/chiro.js",
   "scripts": {
-    "docs": "docgen --jsdoc jsdoc.json --verbose --source src/*.ts src/**/*.ts --output docs/docs.json"
+    "docs": "docgen --jsdoc jsdoc.json --verbose --source src/*.ts src/**/*.ts --custom docs/index.yml --output docs/docs.json",
+    "docs:test": "docgen --jsdoc jsdoc.json --verbose --source src/*.ts src/**/*.ts --custom docs/index.yml"
   }
 }
