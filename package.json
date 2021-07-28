@@ -1,7 +1,7 @@
 {
   "name": "chiro.js",
   "version": "1.0.5",
-  "description": "A easy to use client for nexus",
+  "description": "A easy to use client for Nexus",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "Rohan Kumar",
@@ -21,6 +21,7 @@
     "@babel/core": "^7.14.6",
     "@babel/preset-env": "^7.14.7",
     "@babel/preset-typescript": "^7.14.5",
+    "discord.js-docgen": "discordjs/docgen#ts-patch",
     "jsdoc-babel": "^0.5.0",
     "prettier": "^2.3.2"
   },
@@ -34,9 +35,9 @@
     "chiro",
     "chiro.js"
   ],
-  "repository": "OpenianDevelopment/chiro.js",
-  "bugs": "https://github.com/OpenianDevelopment/chiro.js",
+  "repository": "https://github.com/DevSnowflake/chiro.js",
+  "bugs": "https://github.com/DevSnowflake/chiro.js",
   "scripts": {
-    "docs": "docgen --jsdoc jsdoc.json --verbose --source src/*.ts src/**/*.ts --output main.json"
+    "docs": "docgen --jsdoc jsdoc.json --verbose --source src/*.ts src/**/*.ts --output docs/docs.json"
   }
 }
