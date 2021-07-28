@@ -1,4 +1,5 @@
 - name: General
   files:
     - name: Welcome
+      id: Welcome
       path: ../../README.md
