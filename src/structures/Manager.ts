@@ -22,6 +22,20 @@ export interface Manager {
     on(event: "nodeConnect", listener: (node: Node) => void): this;
 
     /**
+     * An event emitted before [nodeConnect] and [ready].
+     * @event Manager#nodeHelo
+     * @param {Node} node Nexus Node.
+     */
+    on(event: "nodeHello", listener: (node: Node) => void): this;
+
+    /**
+     * Emitted when the node gets reconnected.
+     * @event Manager#nodeReconnect
+     * @param {Node} node Nexus Node
+     */
+     on(event: "nodeReconnect", listener: (node: Node) => void): this;
+
+    /**
      * Emitted when the node connection is disconnected.
      * @event Manager#nodeDisconnect
      * @param {Node} node Nexus Node
@@ -34,6 +48,13 @@ export interface Manager {
      * @param {Node} node Nexus Node
      */
     on(event: "nodeError", listener: (node: Node) => void): this;
+
+    /**
+     * Emitted when the node connection receives an unknown opcode.
+     * @event Manager#nodeUnknownEvent
+     * @param {Payload} payload The payload recieved from the ws api.
+     */
+    on(event: "nodeUnknownEvent", listener: (payload: Payload) => void): this;
 
     /**
      * Emitted when Nexus is ready to play.

@@ -137,7 +137,7 @@ export class Node {
         this.reconnectAttempts = 1;
         clearTimeout(this.reconnectTimeout);
 
-        this.manager.emit("nodeDestroy", this);
+        this.manager.emit("nodeDisconnect", this);
         this.manager.destroyNode();
     }
 
@@ -251,7 +251,7 @@ export class Node {
                     break;
                     
                 default:
-                    this.manager.emit("nodeUnknownOpcode", payload);
+                    this.manager.emit("nodeUnknownEvent", payload);
             }
         }
 
