@@ -21,21 +21,25 @@ export class Queue extends Array<TrackData> {
      * @param {TrackData | TrackData[]} track Track to add to queue
      */
     public add(...tracks: TrackData[]) {
-        if (!this.current && tracks.length) this.current = tracks[tracks.length - 1];
+        if (!this.current && tracks.length) {
+            this.current.stream_time = 0;
+            this.current = tracks[tracks.length - 1];
+        }
+
         this.push(...tracks);
     }
 
     /**
      * Clear the queue.
      */
-    public clear(): void {
+    public clear() {
         this.splice(0);
     }
 
     /**
      * Shuffle the queue.
      */
-    public shuffle(): void {
+    public shuffle() {
         for (let i = this.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [this[i], this[j]] = [this[j], this[i]];

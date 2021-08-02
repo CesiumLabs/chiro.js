@@ -2,13 +2,134 @@ import { EventEmitter } from "events";
 import { Collection, Snowflake, User } from "discord.js";
 import { Node } from "./Node";
 import { Player } from "./Player";
+import { resolveTracks } from "./Utils";
 import {
     ManagerOptions,
     PlayerOptions,
     SearchQuery,
     SearchResult,
     TrackData,
+    Payload
 } from "../Static/Interfaces";
+
+export interface Manager {
+    /**
+     * Emitted when the node connection is established.
+     * @event Manager#nodeConnect
+     * @param {Node} node Nexus Node
+     */
+    on(event: "nodeConnect", listener: (node: Node) => void): this;
+
+    /**
+     * Emitted when the node connection is disconnected.
+     * @event Manager#nodeDisconnect
+     * @param {Node} node Nexus Node
+     */
+    on(event: "nodeDisconnect", listener: (node: Node) => void): this;
+
+    /**
+     * Emitted when the node connection catches an error.
+     * @event Manager#nodeError
+     * @param {Node} node Nexus Node
+     */
+    on(event: "nodeError", listener: (node: Node) => void): this;
+
+    /**
+     * Emitted when Nexus is ready to play.
+     * @event Manager#ready
+     */
+    on(event: "ready", listener: () => void): this;
+
+    /**
+     * Emitted when track is started to play.
+     * @event Manager#trackStart
+     * @param {Player} player Player
+     * @param {TrackData} Track Current Track
+     */
+    on(
+        event: "trackStart",
+        listener: (player: Player, track: TrackData) => void
+    ): this;
+
+    /**
+     * Emitted when the track ends.
+     * @event Manager#trackEnd
+     * @param {Player} player Player
+     * @param {TrackData} Track Ended Track
+     */
+    on(
+        event: "trackEnd",
+        listener: (player: Player, track: TrackData) => void
+    ): this;
+
+    /**
+     * Emitted when there is an error caught while playing it.
+     * @event Manager#trackError
+     * @param {Player} player Player
+     * @param {TrackData} Track Error Track
+     */
+    on(
+        event: "trackError",
+        listener: (player: Player, track: TrackData) => void
+    ): this;
+
+    /**
+     * Emitted when the Queue ends.
+     * @event Manager#queueEnd
+     * @param {Player} player Player
+     */
+    on(event: "queueEnd", listener: (player: Player) => void): this;
+
+    /**
+     * Emitted when the Voice Connection is ready.
+     * @event Manager#voiceReady
+     * @param {Player} player Player
+     */
+    on(event: "voiceReady", listener: (player: Player) => void): this;
+
+    /**
+     * Emitted when the Voice Connection is disconnected.
+     * @event Manager#voiceDisconnect
+     * @param {Player} player Player
+     */
+    on(event: "voiceDisconnect", listener: (player: Player) => void): this;
+
+    /**
+     * Emitted when the Voice Connection catches an error.
+     * @event Manager#voiceError
+     * @param {Player} player Player
+     * @param {Payload} payload raw payload from Nexus
+     */
+    on(
+        event: "voiceError",
+        listener: (player: Player, payload: Payload) => void
+    ): this;
+
+    /**
+     * Emitted when the audio player catches an error.
+     * @event Manager#audioPlayerError
+     * @param {Player} player Player
+     * @param {Payload} payload raw payload from nexus
+     */
+    on(
+        event: "audioPlayerError",
+        listener: (player: Player, payload: Payload) => void
+    ): this;
+
+    /**
+     * Emitted when a new Player is created.
+     * @event Manager#playerCreated
+     * @param {Player} player Player
+     */
+    on(event: "playerCreated", listener: (player: Player) => void): this;
+
+    /**
+     * Emitted when a player is destroyed.
+     * @event Manager#playerDestroy
+     * @param {Player} player Old Player
+     */
+    on(event: "playerDestroy", listener: (player: Player) => void): this;
+}
 
 /**
  * The Manager Class which manages all the players.
@@ -52,7 +173,7 @@ export class Manager extends EventEmitter {
      * Nexus Access Token for the REST API calls.
      * @type {string}
      */
-    public access_token: string;
+    public accessToken: string;
 
     /**
      * Creates new Manager Instance
@@ -112,62 +233,8 @@ export class Manager extends EventEmitter {
             .makeRequest("GET", `api/tracks/search?query=${encodeURIComponent(searchQuery.query)}&identifier=${searchQuery.identifier || 'ytsearch'}`,)
             .then(res => res.json());
 
-        return this.resolveTrackData(response, requester)
-    }
-
-    /**
-     * Internal method to resolve search results from nexus rest api into SearchResult Interface.
-     * 
-     * @param {Object} results Search result.
-     * @param {User} requester The user who has searched.
-     * @returns {SearchResult}
-     * @private
-     * @ignore
-     */
-    private resolveTrackData(results: any, requester: User): SearchResult {
-        if (!results.results.length) return {
-            type: "NO_RESULT",
-            tracks: [],
-            requester: requester,
-        };
-        
-        return (results.identifier === "ytsearch" ||  results.identifier == "scsearch") ?
-            { type: "SEARCH_RESULT", tracks: results.results, requester } : 
-            {
-                type: "PLAYLIST",
-                playlist: {
-                    title: results.results[0].title,
-                    id: results.results[0].id,
-                    url: results.results[0].url,
-                    author: results.results[0].author,
-                    extractor: results.results[0].extractor,
-                },
-                tracks: results.results[0].tracks.map((track: TrackData) => this.buildTrackData(track, requester)),
-                requester
-            }
-        
-    }
-
-    /**
-     * Internal method to encapsulate Track Data received from Nexus into {TrackData}.
-     * 
-     * @param {TrackData} data The Track details received from Nexus.
-     * @param {User} requester The person who requested it.
-     * @returns {TrackData}
-     * @ignore
-     * @private
-     */
-    private buildTrackData(data: TrackData, requester: User): TrackData {
-        return {
-            url: data.url,
-            title: data.title,
-            thumbnail: data.thumbnail,
-            duration: data.duration,
-            author: data.author,
-            created_at: data.created_at,
-            extractor: data.extractor,
-            requested_by: requester,
-        };
+        if (!response || !response.results) throw new Error("Responded results from the server seems to be empty.");
+        return resolveTracks(response, requester)
     }
 
     /**
@@ -208,95 +275,6 @@ export class Manager extends EventEmitter {
         if (data && data.t === "VOICE_SERVER_UPDATE" || data.t === "VOICE_STATE_UPDATE") this.node.socket.send(JSON.stringify(data));
     }
 }
-
-/**
- * Emitted when node connection is established
- * @event Manager#nodeConnect
- * @param {Node} node
- */
-
-/**
- * Emitted when node connection is disconnected
- * @event Manager#nodeDisconnect
- * @param {Node} node
- */
-
-/**
- * Emitted when node connection errors
- * @event Manager#nodeError
- * @param {Node} node
- */
-
-/**
- * Emitted when Nexus is Ready to play
- * @event Manager#ready
- */
-
-/**
- * Emitted when track is added to the queue
- * @event Manager#trackADD
- * @param {Player} player
- * @param {TrackData} Track
- */
-
-/**
- * Emitted when tracks is added to the queue
- * @event Manager#tracksADD
- * @param {Player} player
- * @param {TrackData[]} Tracks
- */
-
-/**
- * Emitted when track is start playing
- * @event Manager#trackStart
- * @param {Player} player
- * @param {TrackData} Track
- */
-
-/**
- * Emitted when track is ends
- * @event Manager#trackEnd
- * @param {Player} player
- * @param {TrackData} Track
- */
-
-/**
- * Emitted when track errors
- * @event Manager#trackError
- * @param {Player} player
- * @param {TrackData} Track
- */
-
-/**
- * Emitted when Queue ends
- * @event Manager#queueEnd
- * @param {Player} player
- * @param {Payload} payload
- */
-
-/**
- * Emitted when Voice Connection is Ready
- * @event Manager#voiceReady
- * @param {Payload} payload
- */
-
-/**
- * Emitted when Voice Connection is disconnected
- * @event Manager#voiceDisconnect
- * @param {Payload} payload
- */
-
-/**
- * Emitted when Voice Connection error
- * @event Manager#voiceError
- * @param {Payload} payload
- */
-
-/**
- * Emitted when Audio Player Errors
- * @event Manager#audioPlayerError
- * @param {Payload} payload
- */
 
 /**
  * @typedef {Object} ManagerOptions
@@ -343,10 +321,11 @@ export class Manager extends EventEmitter {
  * @typedef {Object} TrackData
  * @param {string} url URL of the Track
  * @param {string} title Title of the Track
- * @param {string} [thumbnail] Image of the Track
+ * @param {string} thumbnail Image of the Track
  * @param {number} duration Duration of the Track
  * @param {string} author Uploader of the Track
  * @param {Date} created_at Track upload date
  * @param {string} extractor Website track is fetched from
  * @param {User} requested_by User who requested it
+ * @param {number} stream_time=0 Current seek of playing track
  */

@@ -160,7 +160,7 @@ export class Node {
             method,
             body: JSON.stringify(body || {}),
             headers: {
-                Authorization: this.manager.access_token,
+                Authorization: this.manager.accessToken,
                 "Content-Type": "application/json",
             },
         }); 
@@ -256,31 +256,41 @@ export class Node {
         }
 
         if (payload.t !== undefined) {
+            const player = this.manager.players.get(payload.d.guild_id);
             switch (payload.t) {
                 case WSEvents.READY:
-                    this.manager.access_token = payload.d.access_token;
+                    this.manager.accessToken = payload.d.access_token;
                     this.manager.emit("ready", payload);
                     break;
 
                 case WSEvents.VOICE_CONNECTION_READY:
-                    this.manager.emit("voiceReady", payload);
+                    player.state = "connected";
+                    if (player) this.manager.emit("voiceReady", player, payload);
                     break;
 
                 case WSEvents.VOICE_CONNECTION_ERROR:
-                    this.manager.emit("voiceError", payload);
+                    this.manager.emit("voiceError", player, payload);
                     break;
 
                 case WSEvents.VOICE_CONNECTION_DISCONNECT:
-                    this.manager.emit("voiceError", payload);
+                    player.state = "disconnected";
+                    if (player) this.manager.emit("voiceDisconnect", player);
+                    player.queue.clear();
                     break;
 
                 case WSEvents.AUDIO_PLAYER_ERROR:
                     this.manager.emit("audioPlayerError", payload);
                     break;
 
+                case WSEvents.AUDIO_PLAYER_STATUS:
+                    // TODO(Scientific-Guy): Remove this clg please.
+                    console.log(payload);
+
                 default:
                     // The only events left are track events.
                     this.handleTrackEvent(payload);
+                    this.manager.emit("audioPlayerError", player, payload);
+                    break;
             }
         }
     }
@@ -300,7 +310,6 @@ export class Node {
         switch (payload.t) {
             case WSEvents.TRACK_START:
                 player.playing = true;
-                player.paused = false;
                 this.manager.emit("trackStart", player, track, payload);
                 break;
 
@@ -330,7 +339,6 @@ export class Node {
     protected trackEnd(player: Player, track: TrackData, payload: Payload) {
         if (!player.queue.length) return this.queueEnd(player, payload);
         if (track && player.trackRepeat) {
-            if (!player.queue.current) return this.queueEnd(player, payload);
             this.manager.emit("trackEnd", player, track);
             return player.play();
         }
@@ -339,7 +347,6 @@ export class Node {
         player.queue.current = player.queue.shift();
 
         if (track && player.queueRepeat) {
-            if (!player.queue.current) return this.queueEnd(player, payload);
             player.queue.add(player.queue.previous);
             this.manager.emit("trackEnd", player, track);
             return player.play();
@@ -364,9 +371,22 @@ export class Node {
     }
 
     /**
-     * Send payload to the nexus using ws.
+     * Update the player's data.
      * 
-     * @param {Object} data Payload to send to the WS Api.
+     * @param player The player.
+     * @param payload The payload data to be sent while updating.
+     * @protected
+     */
+    protected updatePlayerData(player: Player, payload: Payload) {
+        player.playing = !payload.d.paused;
+        player.volume = payload.d.volume;
+        player.queue.current.stream_time = payload.d.stream_time;
+    }
+
+    /**
+     * Send payload data to the nexus using ws.
+     * 
+     * @param {Object} data Payload to send to WS
      * @returns {Promise<boolean>}
      * @example
      * const payload = {"op": 10, d: null}

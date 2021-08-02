@@ -40,12 +40,6 @@ export class Player {
     public playing = false;
 
     /**
-     * Boolean stating is the player paused or not.
-     * @type {boolean}
-     */
-    public paused = false;
-
-    /**
      * The volume of the player.
      * @type {number}
      */
@@ -88,23 +82,17 @@ export class Player {
     private static _manager: Manager;
 
     /**
-     * Boolean stating is the player connected or not.
-     * @type {boolean}
+     * The current state of the player.
+     * idle - Not connected yet.
+     * connected - Connected to the player.
+     * disconnected - Was connected to the player.
+     * connecting - Connecting to the player.
+     * 
+     * @type {"connected" | "disconnected" | "connecting"}
      * @hidden
      * @ignore
      */
-    private connected: boolean = false;
-
-    /**
-     * Initialize the static manager for the player.
-     * 
-     * @type {void}
-     * @param {Manager} manager The static manager to set.
-     * @ignore
-     */
-    public static initStaticManager(manager: Manager)  {
-        this._manager = manager;
-    }
+    public state: "connected" | "disconnected" | "connecting" = "connecting";
 
     /**
      * Creates a new player instance.
@@ -124,9 +112,35 @@ export class Player {
         if (!this.node) throw new RangeError("No available nodes.");
 
         this.manager.players.set(options.guild, this);
-        this.manager.emit("playerCreate", this);
         this.setVolume(options.volume ?? 100);
         this.connect();
+    }
+
+    /**
+     * Boolean stating is the player connected or not.
+     * @readonly
+     */
+    public get connected(): boolean {
+        return this.state == "connected";
+    }
+
+    /**
+     * Boolean stating is the player paused or not.
+     * @readonly
+     */
+    public get paused(): boolean {
+        return this.connected && !this.playing;
+    }
+
+    /**
+     * Initialize the static manager for the player.
+     * 
+     * @returns {void}
+     * @param {Manager} manager The static manager to set.
+     * @ignore
+     */
+    public static initStaticManager(manager: Manager)  {
+        this._manager = manager;
     }
 
     /**
@@ -144,39 +158,44 @@ export class Player {
     }
 
     /**
-     * Create a voice channel Subscription to nexus
+     * Create a voice channel Subscription to nexus.
+     * @returns {Promise<void>}
      */
     public async connect()  {
         if (!this.voiceChannel) throw new RangeError("No voice channel has been set.");
-        await this.node.makeRequest("POST",`api/subscription/${this.guild}/${this.voiceChannel}`)
-        this.manager.emit("playerCreate", this);
+        await this.node.makeRequest("POST",`api/subscription/${this.guild}/${this.voiceChannel}`);
+        this.state = "connecting";
     }
 
     /**
      * Disconnects the voice channel.
+     * @returns {Promise<void>}
      */
     public async disconnect(): Promise<this> {
         if (!this.voiceChannel) return this;
         if (this.playing) this.stop();
         await this.node.makeRequest("DELETE", `api/subscription/${this.guild}/${this.voiceChannel}`);
         this.voiceChannel = null;
-        this.connected = false;
-        return this;
+        this.state = "disconnected";
     }
+
     /**
      * Play the songs added in the queue.
+     * @returns {Promise<void>}
      */
     public async play() {
         if (!this.queue.current) throw new RangeError("Queue is empty!");
-        if (!this.connected) await this.connect();
+        if (this.state == "disconnected") await this.connect();
         
-        return await new Promise(resolve => {
+        return await new Promise((resolve, reject) => {
             const connectInterval = setInterval(() => {
                 if (this.connected) {
                     this.sendPlayPost(this.queue.current);
-                    clearInterval(connectInterval);
-                    resolve(null);
+                    return resolve(null);
                 }
+
+                clearInterval(connectInterval);
+                reject(new Error(`Timed out to play the player because the player's state is still ${this.state}.`));
             }, 1000);
         });
     }
@@ -193,7 +212,7 @@ export class Player {
     }
 
     /**
-     * Send filter to Nexus.
+     * Apply filters through the Nexus API.
      * @param {Filters} filter Music Filter to Apply
      */
     public applyFilters(filter: Filters) {
@@ -206,41 +225,66 @@ export class Player {
 
     /**
      * Set the volume of the player.
-     * @param {number} volume Volume of the player
+     * @param {number} volume Volume to set.
+     * @returns {Promise<void>}
      */
-    public setVolume(volume: number)  {
+    public async setVolume(volume: number)  {
         this.volume = volume;
-        return this.node.makeRequest("PATCH", `api/player/${this.guild}`, { data: { volume: this.volume } })
+        await this.node.makeRequest("PATCH", `api/player/${this.guild}`, { data: { volume: this.volume } });
     }
 
     /**
      * Destroy the player.
+     * @returns {Promise<void>}
      */
-    public destroy()  {
-        if (this.playing) this.stop();
-        this.disconnect();
+    public async destroy()  {
+        if (this.playing) await this.stop();
+        await this.disconnect();
         this.manager.emit("playerDestroy", this);
         this.manager.players.delete(this.guild);
     }
 
     /**
      * Clear the queue and stop the player.
+     * @returns {Promise<void>}
      */
-    public stop()  {
+    public async stop()  {
         this.queue.current = null;
         this.queue.previous = null;
         this.queue.clear();
         this.playing = false;
-        this.skip();
-        this.destroy();
+        await this.skip();
+        await this.destroy();
     }
 
     /**
      * Skip the current playing song.
+     * @returns {Promise<void>}
      */
-    public skip()  {
-        return this.node.makeRequest("DELETE", `api/player/${this.guild}`, );
+    public async skip() {
+        await this.node.makeRequest("DELETE", `api/player/${this.guild}`);
     }
+
+    /**
+     * Pause the player.
+     * @returns {Promise<void>}
+     */
+    public async pause() {
+        if (this.paused) return;
+        this.playing = false;
+        await this.node.makeRequest("PATCH", `api/player/${this.guild}`, { data: { paused: true } });
+    }
+
+    /**
+     * Resume the player.
+     * @returns {Promise<void>}
+     */
+    public async resume() {
+        if (this.playing) return;
+        this.playing = true;
+        await this.node.makeRequest("PATCH", `api/player/${this.guild}`, { data: { paused: false } });
+    }
+
 }
 
 /**
@@ -267,7 +311,7 @@ export class Player {
  * @property {string} surrounding The surrounding filter
  * @property {string} pulsator The pulsator filter
  * @property {string} subboost The subboost filter
- * @property {string} kakaoke The kakaoke filter
+ * @property {string} karaoke The karaoke filter
  * @property {string} flanger The flanger filter
  * @property {string} gate The gate filter
  * @property {string} haas The haas filter
