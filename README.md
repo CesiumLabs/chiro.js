@@ -29,23 +29,26 @@ npm install chiro.js
 ## Example usage
 
 ```js
-const { Client } = require("discord.js");
-const { Manager } = require("chiro.js");
-const client = new Client();
-const manager = new Manager({    
-    nodes:      
-        {
-            host: "localhost",
-            port: 3000,
-            password: "mostsecurepassword",
-        },
+const Discord = require("discord.js");
+const Chiro = require("chiro.js");
+const client = new Discord.Client();
+const manager = new Chiro.Manager({    
+    node: { host: "localhost", port: 3000, password: "mostsecurepassword", secure: true },
     send(id, payload) {
         const guild = client.guilds.cache.get(id);
         if (guild) guild.shard.send(payload);
     },
-}).on("trackStart", (player, track) => {
-    console.log(`${track.title} has started`);
 });
+
+manager.on("ready", () => {
+    console.log("Chiro manager is ready.");
+});
+
+manager.on("trackStart", (player, track) => {
+    console.log(`${track.title} has started playing!`);
+});
+
+manager.on("error", console.log);
 
 client.on("ready", () => {
     manager.init(client.user.id);
@@ -59,18 +62,14 @@ client.on("message", async (message) => {
             textChannel: message.channel.id,
             voiceChannel: message.member.voice.channel.id,
         });
-        const res = await player.send({
-            query: "play that funky music",
-        });
 
-        player.queue.add(res.tracks[0]);
-        player.play();
+        const response = await player.send({ query: "play that funky music" });
+        player.queue.add(response.tracks[0]);
+        await player.play();
     }
 });
 
-client.on('raw', (d)=>{
-    manager.updateVoiceState(d);
-})
+client.on('raw', manager.updateVoiceState);
 
 client.login("token");
 ```
@@ -84,11 +83,11 @@ client.login("token");
 - [GitHub](https://github.com/OpenianDevelopment/chiro.js)
 - [NPM](https://www.npmjs.com/package/chiro.js)
 
-
 ## Help
 
 If you don't understand something in the documentation, you are experiencing problems, or you just need a gentle
-nudge in the right direction, please don't hesitate to join our official [Chiro.js Server](https://menhera-chan.in/support).
+nudge in the right direction kindly create an github issue or join our official [Chiro.js Server](https://menhera-chan.in/support).
 
 ## Notice
+
 The documentation is WIP. This is just a temporary docs
