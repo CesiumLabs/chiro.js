@@ -39,7 +39,7 @@ export class Player {
      * Whether the player is paused.
      * @type {boolean}
      */
-    public paused = false;
+    private _paused = false;
     /**
      * Player Volume.
      * @type {number}
@@ -75,12 +75,13 @@ export class Player {
      */
     private static _manager: Manager;
     /**
-     * PLayer Connected
-     * @type {boolean}
+     * Player Connected
+     * @type {"connected" | "disconnected" | "connecting"} connected = "disconnected"
      * @hidden
      * @ignore
      */
-    private connected: boolean = false;
+    public connected: "connected" | "disconnected" | "connecting" =
+        "disconnected";
 
     /**
      * Static Init
@@ -149,6 +150,7 @@ export class Player {
             )
             .then((res) => res);
         this.manager.emit("playerCreate", this);
+        this.connected = "connecting";
     }
 
     /**
@@ -166,8 +168,7 @@ export class Player {
             )
             .then((res) => res);
         this.voiceChannel = null;
-        this.connected = false;
-
+        this.connected = "disconnected";
         return this;
     }
     /**
@@ -176,11 +177,11 @@ export class Player {
     public play() {
         if (!this.queue.current) throw new RangeError("Queue is empty");
         const track = this.queue.current;
-        if (!this.connected) {
+        if (this.connected === "disconnected") {
             this.connect();
         }
         const connectInterval = setInterval(() => {
-            if (this.connected) {
+            if (this.connected === "connected") {
                 this.sendPlayPost(track);
                 clearInterval(connectInterval);
             }
@@ -203,19 +204,6 @@ export class Player {
         this.playing = true;
     }
 
-    /**
-     * Send filter to Nexus
-     * @param {Filters} filter Music Filter to Apply
-     */
-    public applyFilters(filter: Filters) {
-        this.node
-            .makeRequest(`api/player/${this.guild}`, "PATCH", {
-                data: { encoder_args: ["-af", filter] },
-            })
-            .then((res) => {
-                if (!res.ok) console.log(res);
-            });
-    }
     /**
      * Set the volume of the player
      * @param {number} volume Volume of the player
@@ -258,6 +246,35 @@ export class Player {
             .makeRequest(`api/player/${this.guild}`, "DELETE")
             .then((res) => res);
     }
+
+    public get paused() {
+        return this._paused;
+    }
+    public set paused(status: boolean) {
+        console.log(status);
+        this._paused = status;
+        this.playing = !status;
+        this.node
+            .makeRequest(`api/player/${this.guild}`, "PATCH", {
+                data: { paused: status },
+            })
+            .then((res) => res.text())
+            .then((json) => console.log(json));
+    }
+
+    /**
+     * Send filter to Nexus
+     * @param {Filters} filter Music Filter to Apply
+     */
+    public applyFilters(filter: Filters) {
+        this.node
+            .makeRequest(`api/player/${this.guild}`, "PATCH", {
+                data: { encoder_args: ["-af", filter] },
+            })
+            .then((res) => {
+                if (!res.ok) console.log(res);
+            });
+    }
 }
 
 /**
@@ -284,7 +301,7 @@ export class Player {
  * @property {string} surrounding The surrounding filter
  * @property {string} pulsator The pulsator filter
  * @property {string} subboost The subboost filter
- * @property {string} kakaoke The kakaoke filter
+ * @property {string} karaoke The karaoke filter
  * @property {string} flanger The flanger filter
  * @property {string} gate The gate filter
  * @property {string} haas The haas filter

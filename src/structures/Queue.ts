@@ -26,6 +26,7 @@ export class Queue extends Array<TrackData> {
             } else {
                 this.current = (track = [...track]).shift();
             }
+            this.current.stream_time = 0;
         }
         if (track instanceof Array) this.push(...track);
         else this.push(track);

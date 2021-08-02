@@ -68,17 +68,19 @@ export interface TrackData {
     /** Track title */
     title: string;
     /** Track Image */
-    thumbnail?: string;
+    thumbnail: string;
     /** Track duration */
     duration: number;
     /** Track author */
     author: string;
     /** uploaded date */
-    created_at?: Date;
+    created_at: Date;
     /** Website track is from */
-    extractor?: string;
+    extractor: string;
     /** Who requested this track */
-    requested_by?: User;
+    requested_by: User;
+    /** Seek Time only available for current playing track*/
+    stream_time: number;
 }
 
 export interface SearchResult {

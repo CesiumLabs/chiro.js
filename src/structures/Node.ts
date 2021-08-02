@@ -248,6 +248,7 @@ export class Node {
             }
         }
         if (payload.t !== undefined) {
+            const player = this.manager.players.get(payload.d.guild_id);
             switch (payload.t) {
                 case WSEvents.READY:
                     console.log("Identified");
@@ -255,13 +256,17 @@ export class Node {
                     this.manager.emit("ready", payload);
                     break;
                 case WSEvents.VOICE_CONNECTION_READY:
-                    this.manager.emit("voiceReady", payload);
+                    player.connected = "connected";
+                    if (player)
+                        this.manager.emit("voiceReady", player, payload);
                     break;
                 case WSEvents.VOICE_CONNECTION_ERROR:
-                    this.manager.emit("voiceError", payload);
+                    this.manager.emit("voiceError", player, payload);
                     break;
                 case WSEvents.VOICE_CONNECTION_DISCONNECT:
-                    this.manager.emit("voiceError", payload);
+                    player.connected = "disconnected";
+                    if (player) this.manager.emit("voiceDisconnect", player);
+                    player.queue.clear();
                     break;
                 case WSEvents.TRACK_START:
                     this.handleTrackEvent(payload);
@@ -276,7 +281,10 @@ export class Node {
                     this.handleTrackEvent(payload);
                     break;
                 case WSEvents.AUDIO_PLAYER_ERROR:
-                    this.manager.emit("audioPlayerError", payload);
+                    this.manager.emit("audioPlayerError", player, payload);
+                    break;
+                case WSEvents.AUDIO_PLAYER_STATUS:
+                    console.log(payload);
             }
         }
     }
@@ -294,7 +302,7 @@ export class Node {
         if (payload.t === WSEvents.TRACK_START) {
             this.trackStart(player, track, payload);
         }
-        if (payload.t === WSEvents.QUEUE_END) {
+        if (payload.t === WSEvents.TRACK_FINISH) {
             this.trackEnd(player, track, payload);
         }
         if (payload.t === WSEvents.TRACK_ERROR) {
@@ -334,14 +342,13 @@ export class Node {
         track: TrackData,
         payload: Payload
     ): void {
+        if (!player.queue.current) return this.queueEnd(player, payload);
         if (track && player.trackRepeat) {
-            if (!player.queue.current) return this.queueEnd(player, payload);
             this.manager.emit("trackEnd", player, track);
             player.play();
             return;
         }
         if (track && player.queueRepeat) {
-            if (!player.queue.current) return this.queueEnd(player, payload);
             player.queue.previous = player.queue.current;
             player.queue.current = player.queue.shift();
             player.queue.add(player.queue.previous);
@@ -370,6 +377,18 @@ export class Node {
     }
 
     /**
+     * Update Player Data
+     * @param player
+     * @param payload
+     * @protected
+     */
+    protected updatePlayerData(player: Player, payload: Payload) {
+        player.paused = payload.d.paused;
+        player.volume = payload.d.volume;
+        player.queue.current.stream_time = payload.d.stream_time;
+    }
+
+    /**
      * Send payload to the nexus using ws
      * @param {Object} data Payload to send to WS
      * @return {Promise<boolean>}
@@ -382,13 +401,13 @@ export class Node {
      */
     public send(data: unknown): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            if (!this.connected) return resolve(false);
+            if (!this.connected) return false;
             if (!data || !JSON.stringify(data).startsWith("{")) {
-                return reject(false);
+                return false;
             }
             this.socket.send(JSON.stringify(data), (error: Error) => {
                 if (error) reject(error);
-                else resolve(true);
+                else true;
             });
         });
     }
