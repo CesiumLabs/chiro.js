@@ -1,120 +1,146 @@
-import { Manager } from "./Manager";
-import { NodeOptions, Payload, TrackData } from "../Static/Interfaces";
-
 import WebSocket from "ws";
-import fetch from "node-fetch";
-import { WSEvents, WSOpCodes } from "../Static/Constants";
+import fetch, { Response } from "node-fetch";
+import { Manager } from "./Manager";
 import { Player } from "./Player";
+import { NodeOptions, Payload, TrackData } from "../Static/Interfaces";
+import { WSEvents, WSOpCodes } from "../Static/Constants";
+
+function generateRandomPassword(): string {
+    const characters = 'abcdefghijklmnopqrstuvwxyz123456789';
+    let password = '';
+    for (let i = 0; i < 22; i++) password += characters[Math.floor(Math.random() * characters.length)];
+    return password;
+}
 
 /**
- * The Node Class
+ * @typedef {Object} NodeOptions
+ * @param {string} host='localhost' Hostname of Nexus Node
+ * @param {number} port='3000' Port of Nexus
+ * @param {string} password Password for Nexus
+ * @param {boolean} secure=false If Nexus has ssl
+ * @param {string} identifier IDentifier for nexus
+ * @param {number} [retryAmount] Retry Amount
+ * @param {number} [retryDelay] Retry Delay
+ * @param {number} [requestTimeout] Request Timeout
+ */
+
+/**
+ * The Node class which does the api management.
  */
 export class Node {
+
     /**
-     * Websocket
+     * Websocket of the node.
      * @type {WebSocket}
      */
     public socket: WebSocket | null = null;
+
     /**
-     * The Manager
+     * The Manager of this node.
      * @type {Manager}
      */
     public manager: Manager;
+
     /**
-     * Static Manager
+     * Static manager for this node.
      * @type {Manager}
      * @ignore
      * @private
      */
     private static _manager: Manager;
+
     /**
-     * Reconnect Timeout
+     * Reconnect Timeout.
      * @type {NodeJS.Timeout}
      * @ignore
      * @private
      */
     private reconnectTimeout?: NodeJS.Timeout;
+
     /**
-     * Reconnect Attempts
-     * @type Number
+     * Number of reconnect attempts.
+     * @type {number}
      * @ignore
      * @private
      */
     private reconnectAttempts: number = 1;
 
     /**
-     * Check if socket is ready
-     * @type {void}
-     * @ignore
-     * @return {boolean}
-     */
-    public get connected(): boolean {
-        if (!this.socket) return false;
-        return this.socket.readyState === WebSocket.OPEN;
-    }
-
-    /**
-     * @ignore
-     * @param {Manager} manager Manager
-     */
-    public static init(manager: Manager): void {
-        this._manager = manager;
-    }
-
-    /**
-     * Node Constructor
+     * The constructor for the node.
+     * 
      * @hideconstructor
-     * @param {NodeOptions} options Node Options
+     * @param {NodeOptions} options The options required for the Node.
      */
     constructor(public options: NodeOptions) {
         if (!this.manager) this.manager = Node._manager;
-        if (!this.manager)
-            throw new RangeError("Manager has not been initiated.");
+        if (!this.manager) throw new RangeError("Manager has not been initiated.");
+        if (this.manager.node) return this.manager.node;
 
-        if (this.manager.node) {
-            return this.manager.node;
-        }
         this.options = {
             port: 3000,
-            password: "SwagLordNitroUser12345",
+            password: generateRandomPassword(),
             secure: false,
             retryAmount: 5,
             retryDelay: 30e3,
             ...options,
         };
+
         this.manager.node = this;
         this.manager.emit("nodeCreate", this);
     }
 
     /**
-     * Creates a WS connection with Websocket
+     * Returns a boolean stating is the socket connected or not.
+     * 
+     * @ignore
+     * @returns {boolean}
+     */
+    public get connected(): boolean {
+        return this.socket ? this.socket.readyState === WebSocket.OPEN : false;
+    }
+
+    /**
+     * Inititate the static manager for this node.
+     * 
+     * @ignore
+     * @param {Manager} manager Manager
+     */
+    public static initStaticManager(manager: Manager) {
+        this._manager = manager;
+    }
+
+    /**
+     * Creates a WS connection with the Websocket API.
      * @ignore
      */
-    public connect(): void {
+    public connect() {
         if (this.connected) return;
+
         const headers = {
             Authorization: this.options.password,
-            "client-id": this.manager.options.clientId,
+            "client-id": this.manager.options.clientID,
         };
+
         this.socket = new WebSocket(
-            `ws${this.options.secure ? "s" : ""}://${this.options.host}:${
-                this.options.port
-            }/`,
+            `ws${this.options.secure ? "s" : ""}://${this.options.host}:${this.options.port}/`,
             { headers }
         );
+
         this.socket.on("open", this.open.bind(this));
         this.socket.on("close", this.close.bind(this));
         this.socket.on("message", this.message.bind(this));
         this.socket.on("error", this.error.bind(this));
     }
+
     /**
      * Destroys the Node and all players connected with it.
      */
-    public destroy(): void {
+    public destroy() {
         if (!this.connected) return;
 
-        const players = this.manager.players.filter((p) => p.node == this);
-        if (players.size) players.forEach((p) => p.destroy());
+        this.manager.players.forEach(p => {
+            if (p.node == this) p.destroy();
+        });
 
         this.socket.close(1000, "destroy");
         this.socket.removeAllListeners();
@@ -128,57 +154,46 @@ export class Node {
     }
 
     /**
-     * Make REST API Request to Nexus
-     * @param {string} uriComponent URL Components to be added to base URL
-     * @param {string} type Type of Call to make
-     * @param {Object} body Body Object to send to REST API
-     * @return {Promise}
+     * Make a request to the Nexus Api.
+     * 
+     * @param {string} method The type of api request to be done.
+     * @param {string} path The api url's path.
+     * @param {Object} body The body of the request.
+     * @returns {Promise<Response>}
      */
-    public async makeRequest(
-        uriComponent: string,
-        type: "GET" | "POST" | "PATCH" | "DELETE",
-        body?: any
-    ): Promise<any> {
-        const url =
-            `http${this.options.secure ? "s" : ""}://${this.options.host}:${
-                this.options.port
-            }/` + uriComponent;
-        if (body)
-            return await fetch(url, {
-                method: type,
-                headers: {
-                    Authorization: this.manager.access_token,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(body ? body : {}),
-            });
-        else
-            return await fetch(url, {
-                method: type,
-                headers: {
-                    Authorization: this.manager.access_token,
-                    "Content-Type": "application/json",
-                },
-            });
+    public makeRequest(
+        method: "GET" | "POST" | "PATCH" | "DELETE",
+        path: string,
+        body?: Record<string, unknown>
+    ): Promise<Response> {
+        const url =`http${this.options.secure ? "s" : ""}://${this.options.host}:${this.options.port}/${path}`;
+
+        return fetch(url, {
+            method,
+            body: JSON.stringify(body || {}),
+            headers: {
+                Authorization: this.manager.access_token,
+                "Content-Type": "application/json",
+            },
+        }); 
     }
 
     /**
-     * Reconnect in case WS Connection fails
+     * Reconnect in to the Websocket if the connection fails.
+     * 
      * @hidden
      * @ignore
      * @private
      */
-    private reconnect(): void {
+    private reconnect() {
+        if (!this.socket) return;
+
         this.reconnectTimeout = setTimeout(() => {
             if (this.reconnectAttempts >= this.options.retryAmount) {
-                const error = new Error(
-                    `Unable to connect after ${this.options.retryAmount} attempts.`
-                );
-
-                this.manager.emit("nodeError", this, error);
+                this.manager.emit("nodeError", this, new Error(`Unable to connect after ${this.options.retryAmount} attempts.`));
                 return this.destroy();
             }
-            console.log(`RECONNECTING......`);
+            
             this.socket.removeAllListeners();
             this.socket = null;
             this.manager.emit("nodeReconnect", this);
@@ -188,102 +203,104 @@ export class Node {
     }
 
     /**
-     * Emit Event called nodeConnect when socket is open
+     * Open event for the websocket api.
+     * 
      * @protected
      * @ignore
      */
-    protected open(): void {
+    protected open() {
         if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout);
         this.manager.emit("nodeConnect", this);
     }
 
     /**
-     * Emit Event called nodeDisconnect when socket is closed
-     * @param {number} code Close Code
-     * @param {string} reason Reason
+     * Close event for the websocket api.
+     * 
+     * @param {number} code Close code from the ws api.
+     * @param {string} reason Reason for the closinf the ws connection.
      * @protected
      * @ignore
      */
-    protected close(code: number, reason: string): void {
+    protected close(code: number, reason: string) {
         this.manager.emit("nodeDisconnect", this, { code, reason });
         if (code !== 1000 || reason !== "destroy") this.reconnect();
     }
 
     /**
-     * Emit Event called nodeError when there is an error with socket connection
-     * @param {Error} error Error
+     * Error event for the websocket api.
+     * 
+     * @param {Error} error Error from the socket.
      * @protected
      * @ignore
      */
-    protected error(error: Error): void {
+    protected error(error: Error) {
         if (!error) return;
         this.manager.emit("nodeError", this, error);
     }
 
     /**
-     * Handles the WS connection message
-     * @param {Buffer | string} d Data Buffer
+     * Message event from the websocket api.
+     * 
+     * @param {Buffer | string} d Data Buffer from the api.
      * @protected
      * @ignore
      */
-    protected message(d: Buffer | string): void {
+    protected message(d: Buffer | string) {
         if (Array.isArray(d)) d = Buffer.concat(d);
         else if (d instanceof ArrayBuffer) d = Buffer.from(d);
 
         const payload: Payload = JSON.parse(d.toString());
-
         if (payload.op !== undefined) {
             switch (payload.op) {
+                // @ts-ignore
                 case WSOpCodes.HELLO:
-                    console.log(
-                        "Hello Received from Nexus\nSending Identify OP Code"
-                    );
-                    this.socket.send(JSON.stringify({ op: 10 }));
+                    this.manager.emit("nodeHello", this);
+                    this.socket.send(JSON.stringify({ op: WSOpCodes.IDENTIFY }));
                     break;
+
                 case WSOpCodes.VOICE_STATE_UPDATE:
                     this.manager.options.send(payload.d.d.guild_id, payload.d);
                     break;
+                    
                 default:
-                    console.log("UNKNOWN OPCODE");
+                    this.manager.emit("nodeUnknownOpcode", payload);
             }
         }
+
         if (payload.t !== undefined) {
             switch (payload.t) {
                 case WSEvents.READY:
-                    console.log("Identified");
                     this.manager.access_token = payload.d.access_token;
                     this.manager.emit("ready", payload);
                     break;
+
                 case WSEvents.VOICE_CONNECTION_READY:
                     this.manager.emit("voiceReady", payload);
                     break;
+
                 case WSEvents.VOICE_CONNECTION_ERROR:
                     this.manager.emit("voiceError", payload);
                     break;
+
                 case WSEvents.VOICE_CONNECTION_DISCONNECT:
                     this.manager.emit("voiceError", payload);
                     break;
-                case WSEvents.TRACK_START:
-                    this.handleTrackEvent(payload);
-                    break;
-                case WSEvents.TRACK_FINISH:
-                    this.handleTrackEvent(payload);
-                    break;
-                case WSEvents.TRACK_ERROR:
-                    this.handleTrackEvent(payload);
-                    break;
-                case WSEvents.QUEUE_END:
-                    this.handleTrackEvent(payload);
-                    break;
+
                 case WSEvents.AUDIO_PLAYER_ERROR:
                     this.manager.emit("audioPlayerError", payload);
+                    break;
+
+                default:
+                    // The only events left are track events.
+                    this.handleTrackEvent(payload);
             }
         }
     }
 
     /**
-     * handle TrackEvents
-     * @param {Payload} payload Payload
+     * Handle all kind of track events.
+     * 
+     * @param {Payload} payload Payload from the websocket api.
      * @protected
      * @ignore
      */
@@ -291,77 +308,66 @@ export class Node {
         const player = this.manager.players.get(payload.d.guild_id);
         if (!player) return;
         const track = player.queue.current;
-        if (payload.t === WSEvents.TRACK_START) {
-            this.trackStart(player, track, payload);
-        }
-        if (payload.t === WSEvents.QUEUE_END) {
-            this.trackEnd(player, track, payload);
-        }
-        if (payload.t === WSEvents.TRACK_ERROR) {
-            this.manager.emit("trackError", payload);
-            this.trackEnd(player, track, payload);
+
+        switch (payload.t) {
+            case WSEvents.TRACK_START:
+                player.playing = true;
+                player.paused = false;
+                this.manager.emit("trackStart", player, track, payload);
+                break;
+
+            case WSEvents.QUEUE_END:
+                this.trackEnd(player, track, payload);
+                break;
+
+            case WSEvents.TRACK_ERROR:
+                this.manager.emit("trackError", payload);
+                this.trackEnd(player, track, payload);
+                break;
+
+            default:
+                this.manager.emit("nodeUnknownEvent", payload);
         }
     }
 
     /**
-     * When Track Start emit the event trackstart
-     * @param {Player} player Player
-     * @param {TrackData} track Track
-     * @param {Payload} payload payload
+     * Emit event for the TRACK_END event.
+     * 
+     * @param {Player} player The player.
+     * @param {TrackData} track The data of the track.
+     * @param {Payload} payload The payload from the ws api.
      * @protected
      * @ignore
      */
-    protected trackStart(
-        player: Player,
-        track: TrackData,
-        payload: Payload
-    ): void {
-        player.playing = true;
-        player.paused = false;
-        this.manager.emit("trackStart", player, track, payload);
-    }
-
-    /**
-     * Emit event QueueEnd and TrackEnd
-     * @param {Player} player Player
-     * @param {TrackData} track Track
-     * @param {Payload} payload Payload
-     * @protected
-     * @ignore
-     */
-    protected trackEnd(
-        player: Player,
-        track: TrackData,
-        payload: Payload
-    ): void {
+    protected trackEnd(player: Player, track: TrackData, payload: Payload) {
+        if (!player.queue.length) return this.queueEnd(player, payload);
         if (track && player.trackRepeat) {
             if (!player.queue.current) return this.queueEnd(player, payload);
             this.manager.emit("trackEnd", player, track);
-            player.play();
-            return;
+            return player.play();
         }
+
+        player.queue.previous = player.queue.current;
+        player.queue.current = player.queue.shift();
+
         if (track && player.queueRepeat) {
             if (!player.queue.current) return this.queueEnd(player, payload);
-            player.queue.previous = player.queue.current;
-            player.queue.current = player.queue.shift();
             player.queue.add(player.queue.previous);
             this.manager.emit("trackEnd", player, track);
-            player.play();
-            return;
+            return player.play();
         }
+
         if (player.queue.length) {
-            player.queue.previous = player.queue.current;
-            player.queue.current = player.queue.shift();
             this.manager.emit("trackEnd", player, track);
-            player.play();
-            return;
+            return player.play();
         }
-        if (!player.queue.length) return this.queueEnd(player, payload);
     }
 
     /**
-     * @param {Player} player Player
-     * @param {Payload} payload Payload
+     * Emits the `queueEnd` event in the Manager.
+     * 
+     * @param {Player} player The player.
+     * @param {Payload} payload The payload sent by the ws api.
      * @protected
      * @ignore
      */
@@ -370,38 +376,20 @@ export class Node {
     }
 
     /**
-     * Send payload to the nexus using ws
-     * @param {Object} data Payload to send to WS
-     * @return {Promise<boolean>}
+     * Send payload to the nexus using ws.
+     * 
+     * @param {Object} data Payload to send to the WS Api.
+     * @returns {Promise<boolean>}
      * @example
      * const payload = {"op": 10, d: null}
      * <Player>.node.send(payload)
-     * @example
-     * const payload = {"op": 10, d: null}
-     * <Manager>.node.send(payload)
      */
     public send(data: unknown): Promise<boolean> {
         return new Promise((resolve, reject) => {
+            const stringified = JSON.stringify(data);
             if (!this.connected) return resolve(false);
-            if (!data || !JSON.stringify(data).startsWith("{")) {
-                return reject(false);
-            }
-            this.socket.send(JSON.stringify(data), (error: Error) => {
-                if (error) reject(error);
-                else resolve(true);
-            });
+            if (!data || !stringified.startsWith("{")) return reject(new Error('Improper data sent to send in the WS.')); 
+            this.socket.send(stringified, error => error ? reject(error) : resolve(true));
         });
     }
 }
-
-/**
- * @typedef {Object} NodeOptions
- * @param {string} host='localhost' Hostname of Nexus Node
- * @param {number} port='3000' Port of Nexus
- * @param {string} password Password for Nexus
- * @param {boolean} secure=false If Nexus has ssl
- * @param {string} identifier Identifier for nexus
- * @param {number} [retryAmount] Retry Amount
- * @param {number} [retryDelay] Retry Delay
- * @param {number} [requestTimeout] Request Timeout
- */

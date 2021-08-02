@@ -1,11 +1,10 @@
 import { WSEvents, WSOpCodes } from "./Constants";
 import { Snowflake, User } from "discord.js";
-
 /**
  * @typedef Payload
- * @param {string} t Event Name
- * @param {number} op Event OP CODE
- * @param {any} d Data
+ * @param {string} t Event
+ * @param {string} op OPCode
+ * @param {any} d data
  */
 export interface Payload {
     /** Event Name */
@@ -15,7 +14,6 @@ export interface Payload {
     /** Data */
     d?: any;
 }
-
 export interface ManagerOptions {
     /** Node need to connect */
     node?: NodeOptions;
@@ -24,7 +22,6 @@ export interface ManagerOptions {
     /** Send payload to guild */
     send(id: Snowflake, payload: Payload): void;
 }
-
 export interface PlayerOptions {
     /** Server/Guild ID */
     guild: Snowflake;
@@ -35,7 +32,6 @@ export interface PlayerOptions {
     /** Initial volume set for the client */
     volume?: number;
 }
-
 export interface NodeOptions {
     /** The host for the node. */
     host: string;
@@ -54,14 +50,12 @@ export interface NodeOptions {
     /** The timeout used for api calls */
     requestTimeout?: number;
 }
-
 export interface SearchQuery {
     /** IDentifier to mention what kind of search it is */
     identifier?: "ytsearch" | "scsearch" | "ytplaylist";
     /** Search Query and can be a link in case of identifier is a ytplaylist */
     query: string;
 }
-
 export interface TrackData {
     /** Track URL */
     url: string;
@@ -80,7 +74,6 @@ export interface TrackData {
     /** Who requested this track */
     requested_by?: User;
 }
-
 export interface SearchResult {
     /** Type of Search Result */
     type: "SEARCH_RESULT" | "PLAYLIST" | "NO_RESULT";
@@ -91,7 +84,6 @@ export interface SearchResult {
     /** Who requested it */
     requester: User;
 }
-
 export interface PlaylistInfo {
     /** Playlist ID */
     id: string;
