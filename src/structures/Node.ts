@@ -2,6 +2,7 @@ import WebSocket from "ws";
 import fetch, { Response } from "node-fetch";
 import { Manager } from "./Manager";
 import { Player } from "./Player";
+import { ChiroError, ChiroEventError, ChiroEventErrorKind } from "./Error";
 import { NodeOptions, Payload, TrackData } from "../Static/Interfaces";
 import { WSEvents, WSOpCodes } from "../Static/Constants";
 
@@ -60,8 +61,8 @@ export class Node {
      * @param {NodeOptions} options The options required for the Node.
      */
     constructor(public options: NodeOptions) {
-        if (!this.manager) this.manager = Node._manager;
-        if (!this.manager) throw new RangeError("Manager has not been initiated.");
+        if (!Node._manager) throw new ChiroError("Static manager has not been initiated yet for Node.");
+        this.manager = Node._manager;
         if (this.manager.node) return this.manager.node;
 
         this.options = {
@@ -269,7 +270,7 @@ export class Node {
                     break;
 
                 case WSEvents.VOICE_CONNECTION_ERROR:
-                    this.manager.emit("voiceError", player, payload);
+                    this.manager.emit("error", new ChiroEventError(ChiroEventErrorKind.Voice, payload, player));
                     break;
 
                 case WSEvents.VOICE_CONNECTION_DISCONNECT:
@@ -279,7 +280,7 @@ export class Node {
                     break;
 
                 case WSEvents.AUDIO_PLAYER_ERROR:
-                    this.manager.emit("audioPlayerError", payload);
+                    this.manager.emit("error", new ChiroEventError(ChiroEventErrorKind.AudioPlayer, payload, player));
                     break;
 
                 case WSEvents.AUDIO_PLAYER_STATUS:
@@ -289,8 +290,6 @@ export class Node {
                 default:
                     // The only events left are track events.
                     this.handleTrackEvent(payload);
-                    this.manager.emit("audioPlayerError", player, payload);
-                    break;
             }
         }
     }
@@ -318,7 +317,7 @@ export class Node {
                 break;
 
             case WSEvents.TRACK_ERROR:
-                this.manager.emit("trackError", payload);
+                this.manager.emit("error", new ChiroEventError(ChiroEventErrorKind.Track, payload, player));
                 this.trackEnd(player, track, payload);
                 break;
 

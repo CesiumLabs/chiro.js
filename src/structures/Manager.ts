@@ -2,6 +2,7 @@ import Collection from "@discordjs/collection";
 import { EventEmitter } from "events";
 import { Node } from "./Node";
 import { Player } from "./Player";
+import { ChiroError, ChiroEventError } from "./Error";
 import { resolveTracks } from "./Utils";
 import {
     ManagerOptions,
@@ -43,13 +44,6 @@ export interface Manager {
     on(event: "nodeDisconnect", listener: (node: Node) => void): this;
 
     /**
-     * Emitted when the node connection catches an error.
-     * @event Manager#nodeError
-     * @param {Node} node Nexus Node
-     */
-    on(event: "nodeError", listener: (node: Node) => void): this;
-
-    /**
      * Emitted when the node connection receives an unknown opcode.
      * @event Manager#nodeUnknownEvent
      * @param {Payload} payload The payload recieved from the ws api.
@@ -85,17 +79,6 @@ export interface Manager {
     ): this;
 
     /**
-     * Emitted when there is an error caught while playing it.
-     * @event Manager#trackError
-     * @param {Player} player Player
-     * @param {TrackData} Track Error Track
-     */
-    on(
-        event: "trackError",
-        listener: (player: Player, track: TrackData) => void
-    ): this;
-
-    /**
      * Emitted when the Queue ends.
      * @event Manager#queueEnd
      * @param {Player} player Player
@@ -117,28 +100,6 @@ export interface Manager {
     on(event: "voiceDisconnect", listener: (player: Player) => void): this;
 
     /**
-     * Emitted when the Voice Connection catches an error.
-     * @event Manager#voiceError
-     * @param {Player} player Player
-     * @param {Payload} payload raw payload from Nexus
-     */
-    on(
-        event: "voiceError",
-        listener: (player: Player, payload: Payload) => void
-    ): this;
-
-    /**
-     * Emitted when the audio player catches an error.
-     * @event Manager#audioPlayerError
-     * @param {Player} player Player
-     * @param {Payload} payload raw payload from nexus
-     */
-    on(
-        event: "audioPlayerError",
-        listener: (player: Player, payload: Payload) => void
-    ): this;
-
-    /**
      * Emitted when a new Player is created.
      * @event Manager#playerCreated
      * @param {Player} player Player
@@ -151,6 +112,13 @@ export interface Manager {
      * @param {Player} player Old Player
      */
     on(event: "playerDestroy", listener: (player: Player) => void): this;
+
+    /**
+     * Emitted when there is an debuggable error caught.
+     * @event Manager#error
+     * @param {ChiroError} error The error containing details.
+     */
+    on(event: "error", listener: (error: ChiroEventError) => void): this;
 }
 
 /**
@@ -255,7 +223,7 @@ export class Manager extends EventEmitter {
             .makeRequest("GET", `api/tracks/search?query=${encodeURIComponent(searchQuery.query)}&identifier=${searchQuery.identifier || 'ytsearch'}`,)
             .then(res => res.json());
 
-        if (!response || !response.results) throw new Error("Responded results from the server seems to be empty.");
+        if (!response || !response.results) throw new ChiroError("Responded results from the server seems to be empty.");
         return resolveTracks(response, requestor)
     }
 

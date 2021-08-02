@@ -1,6 +1,7 @@
 import { Manager } from "./Manager";
 import { Node } from "./Node";
 import { Queue } from "./Queue";
+import { ChiroError, ChiroEventError, ChiroEventErrorKind } from "./Error";
 import { Filters } from "../Static/Constants";
 import {
     PlayerOptions,
@@ -101,15 +102,16 @@ export class Player {
      * @hideconstructor
      */
     constructor(options: PlayerOptions) {
-        if (!this.manager) this.manager = Player._manager;
-        if (!this.manager) throw new RangeError("Manager has not been initiated.");
+        if (!Player._manager) throw new ChiroError("Static manager has not been initiated yet for Player.");
+        this.manager = Player._manager;
+
+        if (!this.manager.node) throw new ChiroError("Static manager for the player has no node yet.");
         if (this.manager.players.has(options.guild)) return this.manager.players.get(options.guild);
 
         this.guild = options.guild;
         this.node = this.manager.node;
         if (options.voiceChannel) this.voiceChannel = options.voiceChannel;
         if (options.textChannel) this.textChannel = options.textChannel;
-        if (!this.node) throw new RangeError("No available nodes.");
 
         this.manager.players.set(options.guild, this);
         this.setVolume(options.volume ?? 100);
@@ -162,7 +164,7 @@ export class Player {
      * @returns {Promise<void>}
      */
     public async connect()  {
-        if (!this.voiceChannel) throw new RangeError("No voice channel has been set.");
+        if (!this.voiceChannel) throw new ChiroError("No voice channel has been set for the player to connect.");
         await this.node.makeRequest("POST",`api/subscription/${this.guild}/${this.voiceChannel}`);
         this.state = "connecting";
     }
@@ -184,7 +186,7 @@ export class Player {
      * @returns {Promise<void>}
      */
     public async play() {
-        if (!this.queue.current) throw new RangeError("Queue is empty!");
+        if (!this.queue.current) throw new ChiroError("Queue is empty to play!");
         if (this.state == "disconnected") await this.connect();
         
         return await new Promise((resolve, reject) => {
