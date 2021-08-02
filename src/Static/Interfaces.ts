@@ -1,5 +1,4 @@
 import { WSEvents, WSOpCodes } from "./Constants";
-import { Snowflake, User } from "discord.js";
 
 /**
  * @typedef Payload
@@ -78,7 +77,7 @@ export interface TrackData {
     /** Website track is from */
     extractor: string;
     /** Who requested this track */
-    requestedBy: User;
+    requestorID: Snowflake;
     /** Seek Time only available for current playing track*/
     streamTime: number;
 }
@@ -91,7 +90,7 @@ export interface SearchResult {
     /** All tracks got from the query */
     tracks: Array<TrackData>;
     /** Who requested it */
-    requester: User;
+    requestorID: Snowflake;
 }
 
 export interface PlaylistInfo {
@@ -106,3 +105,5 @@ export interface PlaylistInfo {
     /** Source Website */
     extractor: string;
 }
+
+export type Snowflake = string;

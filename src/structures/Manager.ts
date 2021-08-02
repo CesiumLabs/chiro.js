@@ -1,5 +1,5 @@
+import Collection from "@discordjs/collection";
 import { EventEmitter } from "events";
-import { Collection, Snowflake, User } from "discord.js";
 import { Node } from "./Node";
 import { Player } from "./Player";
 import { resolveTracks } from "./Utils";
@@ -9,7 +9,8 @@ import {
     SearchQuery,
     SearchResult,
     TrackData,
-    Payload
+    Payload,
+    Snowflake
 } from "../Static/Interfaces";
 
 export interface Manager {
@@ -221,20 +222,20 @@ export class Manager extends EventEmitter {
     /**
      * Search youtube for songs and playlists.
      * 
-     * @param {SearchQuery} SearchQuery Query Object
-     * @param {User} requester User Object
+     * @param {SearchQuery} searchQuery The query object.
+     * @param {Snowflake} requestor The id of the user who requested it.
      * @returns {SearchResult}
      * @example
      * const results = await manager.search({ query: "Play that funky music" }, message.author);
      * console.log(results);
      */
-    public async search(searchQuery: SearchQuery, requester: User): Promise<SearchResult> {
+    public async search(searchQuery: SearchQuery, requestor: Snowflake): Promise<SearchResult> {
         const response = await this.node
             .makeRequest("GET", `api/tracks/search?query=${encodeURIComponent(searchQuery.query)}&identifier=${searchQuery.identifier || 'ytsearch'}`,)
             .then(res => res.json());
 
         if (!response || !response.results) throw new Error("Responded results from the server seems to be empty.");
-        return resolveTracks(response, requester)
+        return resolveTracks(response, requestor)
     }
 
     /**
@@ -305,7 +306,7 @@ export class Manager extends EventEmitter {
  * @param {SEARCH_RESULT | PLAYLIST | NO_RESULT} type Type Of Search Result
  * @param {PlaylistInfo} [playlist] Playlist info
  * @param {Array<TrackData>} Array of Tracks
- * @param {User} requester User who requested it
+ * @param {Snowflake} requestor User who requested it
  */
 
 /**
@@ -326,6 +327,6 @@ export class Manager extends EventEmitter {
  * @param {string} author Uploader of the Track
  * @param {Date} created_at Track upload date
  * @param {string} extractor Website track is fetched from
- * @param {User} requestedBy User who requested it
+ * @param {Snowflake} requestedBy User who requested it
  * @param {number} streamTime=0 Current seek of playing track
  */

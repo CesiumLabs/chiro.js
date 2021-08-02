@@ -10,7 +10,7 @@
     "dist"
   ],
   "dependencies": {
-    "discord.js": "^12.5.3",
+    "@discordjs/collection": "^0.2.1",
     "events": "^3.3.0",
     "ws": "^7.5.3"
   },

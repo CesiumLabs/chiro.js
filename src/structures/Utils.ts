@@ -1,23 +1,18 @@
-import { SearchResult, TrackData } from "../Static/Interfaces";
-import { User } from "discord.js";
+import { SearchResult, TrackData, Snowflake } from "../Static/Interfaces";
 
 /**
  * Internal Method to Resolve Search Result from nexus into Interface SearchResult
  * @param {Object} results Search results from the api.
- * @param {User} requester The user who requested it.
+ * @param {Snowflake} requestor The user who requested it.
  * @returns {SearchResult}
  * @private
  * @ignore
  */
-export function resolveTracks(results: any, requester: User): SearchResult {
-    if (!results.results.length) return {
-        type: "NO_RESULT",
-        tracks: [],
-        requester: requester,
-    };
+export function resolveTracks(results: any, requestorID: Snowflake): SearchResult {
+    if (!results.results.length) return { type: "NO_RESULT", tracks: [], requestorID };
     
     return (results.identifier === "ytsearch" ||  results.identifier == "scsearch") ?
-        { type: "SEARCH_RESULT", tracks: results.results, requester } : 
+        { type: "SEARCH_RESULT", tracks: results.results, requestorID } : 
         {
             type: "PLAYLIST",
             playlist: {
@@ -27,8 +22,8 @@ export function resolveTracks(results: any, requester: User): SearchResult {
                 author: results.results[0].author,
                 extractor: results.results[0].extractor,
             },
-            tracks: results.results[0].tracks.map((track: TrackData) => encapsulateTrackData(track, requester)),
-            requester
+            tracks: results.results[0].tracks.map((track: TrackData) => encapsulateTrackData(track, requestorID)),
+            requestorID
         }
 }
 
@@ -36,11 +31,11 @@ export function resolveTracks(results: any, requester: User): SearchResult {
  * @ignore
  * @description Internal method to encapsulate Track Data received from Nexus into {TrackData}
  * @param {TrackData} data The Track details received from Nexus.
- * @param {User} requester The person who requested it.
+ * @param {Snowflake} requestor The id of the person who requested it.
  * @returns {TrackData}
  * @private
  */
-function encapsulateTrackData(Track: TrackData, requester: User): TrackData {
+function encapsulateTrackData(Track: TrackData, requestor: Snowflake): TrackData {
     return {
         url: Track.url,
         title: Track.title,
@@ -49,7 +44,7 @@ function encapsulateTrackData(Track: TrackData, requester: User): TrackData {
         author: Track.author,
         created_at: Track.created_at,
         extractor: Track.extractor,
-        requestedBy: requester,
+        requestorID: requestor,
         streamTime: 0,
     };
 }

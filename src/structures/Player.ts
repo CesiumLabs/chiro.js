@@ -1,4 +1,3 @@
-import { Snowflake, User } from "discord.js";
 import { Manager } from "./Manager";
 import { Node } from "./Node";
 import { Queue } from "./Queue";
@@ -8,6 +7,7 @@ import {
     SearchQuery,
     SearchResult,
     TrackData,
+    Snowflake
 } from "../Static/Interfaces";
 
 /**
@@ -146,15 +146,15 @@ export class Player {
     /**
      * Search youtube for songs and playlists.
      * 
-     * @param {SearchQuery} SearchQuery Query Object
-     * @param {User} requester User Object
+     * @param {SearchQuery} searchQuery The search query options object.
+     * @param {Snowflake} requestor The id of the user who requested it.
      * @returns {SearchResult}
      * @example
      * const results = await player.search({ query: "Play that funky music" }, message.author);
      * console.log(results);
      */
-    public search(searchQuery: SearchQuery, requester: User): Promise<SearchResult> {
-        return this.manager.search(searchQuery, requester);
+    public search(searchQuery: SearchQuery, requestor: Snowflake): Promise<SearchResult> {
+        return this.manager.search(searchQuery, requestor);
     }
 
     /**
