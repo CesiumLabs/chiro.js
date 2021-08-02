@@ -49,7 +49,7 @@ function encapsulateTrackData(Track: TrackData, requester: User): TrackData {
         author: Track.author,
         created_at: Track.created_at,
         extractor: Track.extractor,
-        requested_by: requester,
-        stream_time: 0,
+        requestedBy: requester,
+        streamTime: 0,
     };
 }

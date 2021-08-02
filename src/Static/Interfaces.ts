@@ -78,9 +78,9 @@ export interface TrackData {
     /** Website track is from */
     extractor: string;
     /** Who requested this track */
-    requested_by: User;
+    requestedBy: User;
     /** Seek Time only available for current playing track*/
-    stream_time: number;
+    streamTime: number;
 }
 
 export interface SearchResult {

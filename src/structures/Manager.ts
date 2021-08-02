@@ -326,6 +326,6 @@ export class Manager extends EventEmitter {
  * @param {string} author Uploader of the Track
  * @param {Date} created_at Track upload date
  * @param {string} extractor Website track is fetched from
- * @param {User} requested_by User who requested it
- * @param {number} stream_time=0 Current seek of playing track
+ * @param {User} requestedBy User who requested it
+ * @param {number} streamTime=0 Current seek of playing track
  */

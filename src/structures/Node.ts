@@ -380,7 +380,7 @@ export class Node {
     protected updatePlayerData(player: Player, payload: Payload) {
         player.playing = !payload.d.paused;
         player.volume = payload.d.volume;
-        player.queue.current.stream_time = payload.d.stream_time;
+        player.queue.current.streamTime = payload.d.stream_time;
     }
 
     /**

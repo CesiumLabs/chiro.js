@@ -22,7 +22,7 @@ export class Queue extends Array<TrackData> {
      */
     public add(...tracks: TrackData[]) {
         if (!this.current && tracks.length) {
-            this.current.stream_time = 0;
+            this.current.streamTime = 0;
             this.current = tracks[tracks.length - 1];
         }
 
