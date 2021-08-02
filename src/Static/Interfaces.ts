@@ -4,7 +4,7 @@ import { Snowflake, User } from "discord.js";
 /**
  * @typedef Payload
  * @param {string} t Event Name
- * @param {number} op Event OP CODE
+ * @param {number} op Event Op Code
  * @param {any} d Data
  */
 export interface Payload {

@@ -13,18 +13,6 @@ function generateRandomPassword(): string {
 }
 
 /**
- * @typedef {Object} NodeOptions
- * @param {string} host='localhost' Hostname of Nexus Node
- * @param {number} port='3000' Port of Nexus
- * @param {string} password Password for Nexus
- * @param {boolean} secure=false If Nexus has ssl
- * @param {string} identifier IDentifier for nexus
- * @param {number} [retryAmount] Retry Amount
- * @param {number} [retryDelay] Retry Delay
- * @param {number} [requestTimeout] Request Timeout
- */
-
-/**
  * The Node class which does the api management.
  */
 export class Node {
@@ -393,3 +381,15 @@ export class Node {
         });
     }
 }
+
+/**
+ * @typedef {Object} NodeOptions
+ * @param {string} host='localhost' Hostname of Nexus Node
+ * @param {number} port='3000' Port of Nexus
+ * @param {string} password Password for Nexus
+ * @param {boolean} secure=false If Nexus has ssl
+ * @param {string} identifier IDentifier for nexus
+ * @param {number} [retryAmount] Retry Amount
+ * @param {number} [retryDelay] Retry Delay
+ * @param {number} [requestTimeout] Request Timeout
+ */

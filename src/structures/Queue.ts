@@ -1,44 +1,39 @@
 import { TrackData } from "../Static/Interfaces";
 
 /**
- * The Queue
+ * The Queue Structure for the Player.
  */
 export class Queue extends Array<TrackData> {
+
     /**
-     * Current playing track
+     * Current playing track.
      * @type {TrackData}
      */
     public current: TrackData | null = null;
-    /** Last played track
+
+    /** Last played track.
      * @type {TrackData}
      */
     public previous: TrackData | null = null;
 
     /**
-     * Add songs to the queue
+     * Add songs to the queue.
      * @param {TrackData | TrackData[]} track Track to add to queue
      */
-    public add(track: TrackData | TrackData[]) {
-        if (!this.current) {
-            if (!Array.isArray(track)) {
-                this.current = track;
-                return;
-            } else {
-                this.current = (track = [...track]).shift();
-            }
-        }
-        if (track instanceof Array) this.push(...track);
-        else this.push(track);
+    public add(...tracks: TrackData[]) {
+        if (!this.current && tracks.length) this.current = tracks[tracks.length - 1];
+        this.push(...tracks);
     }
+
     /**
-     * clear the queue
+     * Clear the queue.
      */
     public clear(): void {
         this.splice(0);
     }
 
     /**
-     * Shuffle the queue
+     * Shuffle the queue.
      */
     public shuffle(): void {
         for (let i = this.length - 1; i > 0; i--) {
@@ -46,4 +41,5 @@ export class Queue extends Array<TrackData> {
             [this[i], this[j]] = [this[j], this[i]];
         }
     }
+
 }

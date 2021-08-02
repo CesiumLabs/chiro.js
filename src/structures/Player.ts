@@ -1,5 +1,8 @@
+import { Snowflake, User } from "discord.js";
 import { Manager } from "./Manager";
 import { Node } from "./Node";
+import { Queue } from "./Queue";
+import { Filters } from "../Static/Constants";
 import {
     PlayerOptions,
     SearchQuery,
@@ -7,75 +10,85 @@ import {
     TrackData,
 } from "../Static/Interfaces";
 
-import { Snowflake, User } from "discord.js";
-import { Queue } from "./Queue";
-import { Filters } from "../Static/Constants";
-
 /**
  * The Player Class
  */
 export class Player {
+
     /**
-     * Queue for the player
+     * Queue for the player.
      * @type {Queue}
      */
-    public queue = new Queue() as Queue;
+    public queue: Queue = new Queue();
+
     /**
-     * Track Repeat
+     * Boolean stating to repeat the track or not.
      * @type {boolean}
      */
     public trackRepeat = false;
+
     /**
-     * Queue Repeat
+     * Boolean stating to repeat the queue or not.
      * @type {boolean}
      */
     public queueRepeat = false;
+
     /**
-     * Whether the player is playing.
+     * Boolean stating is the player playing or not.
      * @type {boolean}
      */
     public playing = false;
+
     /**
-     * Whether the player is paused.
+     * Boolean stating is the player paused or not.
      * @type {boolean}
      */
     public paused = false;
+
     /**
-     * Player Volume.
+     * The volume of the player.
      * @type {number}
      */
     public volume: number;
+
     /**
-     * The Node
+     * The node of the player.
      * @type {Node}
      */
     public node: Node;
+
     /**
-     * Guild
+     * Guild ID.
      * @type Snowflake
      */
     public guild: Snowflake;
+
     /**
-     * The voice channel
+     * The voice channel.
      * @type {string}
      */
     public voiceChannel: string | null = null;
+
     /**
      * The text channel for the player.
      * @type {string}
      */
     public textChannel: string | null = null;
-    /** The Manager.
+
+    /** The Manager of the player.
      * @type {Manager}
      */
     public manager: Manager;
+
     /**
+     * Static manager of the player.
      * @ignore
      * @private
      */
     private static _manager: Manager;
+
     /**
-     * PLayer Connected
+     * Boolean stating is the player connected or not.
      * @type {boolean}
      * @hidden
      * @ignore
@@ -83,33 +96,33 @@ export class Player {
     private connected: boolean = false;
 
     /**
-     * Static Init
+     * Initialize the static manager for the player.
+     * 
      * @type {void}
-     * @param {Manager} manager Manager
+     * @param {Manager} manager The static manager to set.
      * @ignore
      */
-    public static init(manager: Manager): void {
+    public static initStaticManager(manager: Manager)  {
         this._manager = manager;
     }
 
     /**
-     * Creates a new player instance     *
-     * @param {PlayerOptions} options Player Options
+     * Creates a new player instance.
+     * 
+     * @param {PlayerOptions} options The options nexessary for the player.
      * @hideconstructor
      */
-    constructor(public options: PlayerOptions) {
+    constructor(options: PlayerOptions) {
         if (!this.manager) this.manager = Player._manager;
-        if (!this.manager)
-            throw new RangeError("Manager has not been initiated.");
+        if (!this.manager) throw new RangeError("Manager has not been initiated.");
+        if (this.manager.players.has(options.guild)) return this.manager.players.get(options.guild);
 
-        if (this.manager.players.has(options.guild)) {
-            return this.manager.players.get(options.guild);
-        }
         this.guild = options.guild;
+        this.node = this.manager.node;
         if (options.voiceChannel) this.voiceChannel = options.voiceChannel;
         if (options.textChannel) this.textChannel = options.textChannel;
-        this.node = this.manager.node;
         if (!this.node) throw new RangeError("No available nodes.");
+
         this.manager.players.set(options.guild, this);
         this.manager.emit("playerCreate", this);
         this.setVolume(options.volume ?? 100);
@@ -117,132 +130,103 @@ export class Player {
     }
 
     /**
-     * Adding Manager#search for shortcut
-     * @param {SearchQuery} SearchQuery Search Query
-     * @param {User} requester Person who requested it
-     * @return {Promise<SearchResult>}
+     * Search youtube for songs and playlists.
+     * 
+     * @param {SearchQuery} SearchQuery Query Object
+     * @param {User} requester User Object
+     * @returns {SearchResult}
      * @example
-     * const res = await player.search({
-     *     query: "Play that funky Music",
-     *     identifier: "ytsearch"
-     * },message.author)
-     * console.log(res);
+     * const results = await player.search({ query: "Play that funky music" }, message.author);
+     * console.log(results);
      */
-    public search(
-        SearchQuery: SearchQuery,
-        requester: User
-    ): Promise<SearchResult> {
-        return this.manager.search(SearchQuery, requester);
+    public search(searchQuery: SearchQuery, requester: User): Promise<SearchResult> {
+        return this.manager.search(searchQuery, requester);
     }
 
     /**
-     * Create a voiceChannel Subscription to nexus
+     * Create a voice channel Subscription to nexus
      */
-    public connect(): void {
-        if (!this.voiceChannel)
-            throw new RangeError("No voice channel has been set.");
-
-        this.node
-            .makeRequest(
-                `api/subscription/${this.guild}/${this.voiceChannel}`,
-                "POST"
-            )
-            .then((res) => res);
+    public async connect()  {
+        if (!this.voiceChannel) throw new RangeError("No voice channel has been set.");
+        await this.node.makeRequest("POST",`api/subscription/${this.guild}/${this.voiceChannel}`)
         this.manager.emit("playerCreate", this);
     }
 
     /**
-     * Disconnect to voice channel
+     * Disconnects the voice channel.
      */
-    public disconnect(): this {
+    public async disconnect(): Promise<this> {
         if (!this.voiceChannel) return this;
-        if (this.playing) {
-            this.stop();
-        }
-        this.node
-            .makeRequest(
-                `api/subscription/${this.guild}/${this.voiceChannel}`,
-                "DELETE"
-            )
-            .then((res) => res);
+        if (this.playing) this.stop();
+        await this.node.makeRequest("DELETE", `api/subscription/${this.guild}/${this.voiceChannel}`);
         this.voiceChannel = null;
         this.connected = false;
-
         return this;
     }
     /**
-     * Play the songs added in the queue
+     * Play the songs added in the queue.
      */
-    public play() {
-        if (!this.queue.current) throw new RangeError("Queue is empty");
-        const track = this.queue.current;
-        if (!this.connected) {
-            this.connect();
-        }
-        const connectInterval = setInterval(() => {
-            if (this.connected) {
-                this.sendPlayPost(track);
-                clearInterval(connectInterval);
-            }
-        }, 1000);
+    public async play() {
+        if (!this.queue.current) throw new RangeError("Queue is empty!");
+        if (!this.connected) await this.connect();
+        
+        return await new Promise(resolve => {
+            const connectInterval = setInterval(() => {
+                if (this.connected) {
+                    this.sendPlayPost(this.queue.current);
+                    clearInterval(connectInterval);
+                    resolve(null);
+                }
+            }, 1000);
+        });
     }
 
     /**
-     * Send POST request to NEXUS to play the song
+     * Send POST request to NEXUS to play the song.
+     * 
      * @param {TrackData} track Track to Play the song
      * @private
      */
-    private sendPlayPost(track: TrackData) {
-        this.node
-            .makeRequest(`api/player/${this.guild}`, "POST", {
-                track: {
-                    url: track.url,
-                },
-            })
-            .then((res) => res);
+    private async sendPlayPost(track: TrackData) {
+        await this.node.makeRequest("POST", `api/player/${this.guild}`, { track: { url: track.url } })
         this.playing = true;
     }
 
     /**
-     * Send filter to Nexus
+     * Send filter to Nexus.
      * @param {Filters} filter Music Filter to Apply
      */
     public applyFilters(filter: Filters) {
-        this.node
-            .makeRequest(`api/player/${this.guild}`, "PATCH", {
-                data: { encoder_args: ["-af", filter] },
-            })
-            .then((res) => {
-                if (!res.ok) console.log(res);
+        return this.node
+            .makeRequest("PATCH", `api/player/${this.guild}`, { data: { encoder_args: ["-af", filter] } })
+            .then(res => {
+                if (!res.ok) this.manager.emit("playerError", res);
             });
     }
+
     /**
-     * Set the volume of the player
+     * Set the volume of the player.
      * @param {number} volume Volume of the player
      */
-    public setVolume(volume: number): void {
+    public setVolume(volume: number)  {
         this.volume = volume;
-        this.node
-            .makeRequest(`api/player/${this.guild}`, "PATCH", {
-                data: { volume: this.volume },
-            })
-            .then((res) => res);
+        return this.node.makeRequest("PATCH", `api/player/${this.guild}`, { data: { volume: this.volume } })
     }
+
     /**
-     * Destroy the player
+     * Destroy the player.
      */
-    public destroy(): void {
-        if (this.playing) {
-            this.stop();
-        }
+    public destroy()  {
+        if (this.playing) this.stop();
         this.disconnect();
         this.manager.emit("playerDestroy", this);
         this.manager.players.delete(this.guild);
     }
+
     /**
-     * Clear the queue and stop the player
+     * Clear the queue and stop the player.
      */
-    public stop(): void {
+    public stop()  {
         this.queue.current = null;
         this.queue.previous = null;
         this.queue.clear();
@@ -250,13 +234,12 @@ export class Player {
         this.skip();
         this.destroy();
     }
+
     /**
-     * Skip the current playing song
+     * Skip the current playing song.
      */
-    public skip(): void {
-        this.node
-            .makeRequest(`api/player/${this.guild}`, "DELETE")
-            .then((res) => res);
+    public skip()  {
+        return this.node.makeRequest("DELETE", `api/player/${this.guild}`, );
     }
 }
 

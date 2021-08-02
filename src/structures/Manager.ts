@@ -68,7 +68,7 @@ export class Manager extends EventEmitter {
     constructor(options: ManagerOptions) {
         super();
 
-        Player.init(this);
+        Player.initStaticManager(this);
         Node.initStaticManager(this);
 
         this.options = {
@@ -104,7 +104,7 @@ export class Manager extends EventEmitter {
      * @param {User} requester User Object
      * @returns {SearchResult}
      * @example
-     * const results = await player.search({ query: "Play that funky music" }, message.author);
+     * const results = await manager.search({ query: "Play that funky music" }, message.author);
      * console.log(results);
      */
     public async search(searchQuery: SearchQuery, requester: User): Promise<SearchResult> {
@@ -118,57 +118,47 @@ export class Manager extends EventEmitter {
     /**
      * Internal method to resolve search results from nexus rest api into SearchResult Interface.
      * 
-     * @param {Object} res search result
-     * @param {User} requester user who searched
+     * @param {Object} results Search result.
+     * @param {User} requester The user who has searched.
      * @returns {SearchResult}
      * @private
      * @ignore
      */
-    private resolveTrackData(res: any, requester: User) {
-        if (!res.results.length) {
-            const SearchResult: SearchResult = {
-                type: "NO_RESULT",
-                tracks: [],
-                requester: requester,
-            };
-            return SearchResult;
-        }
-        if (res.identifier === "ytsearch" || "scsearch") {
-            const SearchResult: SearchResult = {
-                type: "SEARCH_RESULT",
-                tracks: res.results,
-                requester: requester,
-            };
-            return SearchResult;
-        } else {
-            const SearchResult: SearchResult = {
+    private resolveTrackData(results: any, requester: User): SearchResult {
+        if (!results.results.length) return {
+            type: "NO_RESULT",
+            tracks: [],
+            requester: requester,
+        };
+        
+        return (results.identifier === "ytsearch" ||  results.identifier == "scsearch") ?
+            { type: "SEARCH_RESULT", tracks: results.results, requester } : 
+            {
                 type: "PLAYLIST",
                 playlist: {
-                    title: res.results[0].title,
-                    id: res.results[0].id,
-                    url: res.results[0].url,
-                    author: res.results[0].author,
-                    extractor: res.results[0].extractor,
+                    title: results.results[0].title,
+                    id: results.results[0].id,
+                    url: results.results[0].url,
+                    author: results.results[0].author,
+                    extractor: results.results[0].extractor,
                 },
-                tracks: res.results[0].tracks.map((track: TrackData) =>
-                    this.buildTrackData(track, requester)
-                ),
-                requester: requester,
-            };
-            return SearchResult;
-        }
+                tracks: results.results[0].tracks.map((track: TrackData) => this.buildTrackData(track, requester)),
+                requester
+            }
+        
     }
 
     /**
-     * @ignore
-     * @description Internal method to encapsulate Track Data received from Nexus into {TrackData}
-     * @param {TrackData} data The Track details received from Nexus
-     * @param {User} requester The person who requested it
+     * Internal method to encapsulate Track Data received from Nexus into {TrackData}.
+     * 
+     * @param {TrackData} data The Track details received from Nexus.
+     * @param {User} requester The person who requested it.
      * @returns {TrackData}
+     * @ignore
      * @private
      */
-    private buildTrackData(data: TrackData, requester: User) {
-        const track: TrackData = {
+    private buildTrackData(data: TrackData, requester: User): TrackData {
+        return {
             url: data.url,
             title: data.title,
             thumbnail: data.thumbnail,
@@ -178,59 +168,44 @@ export class Manager extends EventEmitter {
             extractor: data.extractor,
             requested_by: requester,
         };
-        return track;
     }
 
     /**
-     * Creates a player instance and add it to players collection
-     * @param {PlayerOptions} options Player Options
+     * Creates a player instance and add it to players collection.
+     * 
+     * @param {PlayerOptions} options Player Options to create one, if there is no existing one.
      * @returns {Player}
-     *
      */
     public create(options: PlayerOptions): Player {
-        if (this.players.has(options.guild)) {
-            return this.players.get(options.guild);
-        }
-        return new Player(options);
+        return this.players.get(options.guild) || new Player(options);
     }
 
     /**
-     * Send Player
-     * @param {Snowflake} guild ID of Guild
+     * Get a player by its guild id.
+     * 
+     * @param {Snowflake} guild ID of Guild.
      * @returns {Player}
      */
     public get(guild: Snowflake): Player | undefined {
         return this.players.get(guild);
     }
+
     /**
-     * Destroy the Node connection
+     * Destroy the Node connection.
      */
-    public destroyNode(): void {
+    public destroyNode() {
         this.node.destroy();
     }
 
     /**
-     * Send Voice State Payload Received from Discord API to Nexus
-     * @param {Object} data
+     * Send Voice State Payload Received from Discord API to Nexus.
+     * 
+     * @param {Object} data The data from the event.
      * @example
-     * client.on('raw', (d)=>{
-     *    manager.updateVoiceState(d);
-     * });
+     * client.on('raw', manager.updateVoiceState);
      */
-    public updateVoiceState(data: any): void {
-        if (
-            !data ||
-            !["VOICE_SERVER_UPDATE", "VOICE_STATE_UPDATE"].includes(
-                data.t || ""
-            )
-        )
-            return;
-        if (data.t === "VOICE_SERVER_UPDATE") {
-            this.node.socket.send(JSON.stringify(data));
-        }
-        if (data.t === "VOICE_STATE_UPDATE") {
-            this.node.socket.send(JSON.stringify(data));
-        }
+    public updateVoiceState(data: any) {
+        if (data && data.t === "VOICE_SERVER_UPDATE" || data.t === "VOICE_STATE_UPDATE") this.node.socket.send(JSON.stringify(data));
     }
 }
 
