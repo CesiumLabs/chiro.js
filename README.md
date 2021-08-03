@@ -63,7 +63,7 @@ client.on("message", async (message) => {
             voiceChannel: message.member.voice.channel.id,
         });
 
-        const response = await player.send({ query: "play that funky music" });
+        const response = await player.search({ query: "play that funky music" });
         player.queue.add(response.tracks[0]);
         await player.play();
     }
