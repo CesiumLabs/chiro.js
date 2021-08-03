@@ -11,7 +11,8 @@ import {
     SearchResult,
     TrackData,
     Payload,
-    Snowflake
+    Snowflake,
+    NodeDisconnectContent
 } from "../Static/Interfaces";
 
 export interface Manager {
@@ -33,8 +34,9 @@ export interface Manager {
      * Emitted when the node connection is disconnected.
      * @event Manager#nodeDisconnect
      * @param {Node} node Nexus Node
+     * @param {NodeDisconnectContent} content Object containing the reason for disconnecting the node.
      */
-    on(event: "nodeDisconnect", listener: (node: Node) => void): this;
+    on(event: "nodeDisconnect", listener: (node: Node, content: NodeDisconnectContent) => void): this;
 
     /**
      * Emitted when the node connection receives an unknown opcode.

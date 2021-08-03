@@ -106,4 +106,11 @@ export interface PlaylistInfo {
     extractor: string;
 }
 
+export interface NodeDisconnectContent { 
+    /** The code used to close the gateway. */
+    code: number;
+    /** The reason for closing the gateway. */
+    reason: string;
+}
+
 export type Snowflake = `${bigint}`;
