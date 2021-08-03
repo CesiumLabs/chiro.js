@@ -33,7 +33,7 @@ const Discord = require("discord.js");
 const Chiro = require("chiro.js");
 const client = new Discord.Client();
 const manager = new Chiro.Manager({    
-    node: { host: "localhost", port: 3000, password: "mostsecurepassword", secure: true },
+    node: { host: "localhost", port: 3000, password: "SwagLordNitroUser12345", secure: true },
     send(id, payload) {
         const guild = client.guilds.cache.get(id);
         if (guild) guild.shard.send(payload);
@@ -79,7 +79,7 @@ client.login("token");
 - [Website](https://chirojs.openian.dev/)
 - [Documentation](https://chirojs.openian.dev/)
 - [Discord server](https://menhera-chan.in/support)
-- [Nexus Discord server](https://discord.gg/snowflakedev)
+- [Nexus Discord server](https://snowflakedev.org/discord)
 - [GitHub](https://github.com/OpenianDevelopment/chiro.js)
 - [NPM](https://www.npmjs.com/package/chiro.js)
 
