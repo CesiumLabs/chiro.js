@@ -128,9 +128,10 @@ export class Node {
 
     /**
      * Creates a WS connection with the Websocket API.
+     * @returns {Promise<void>}
      * @ignore
      */
-    public connect() {
+    public connect(): Promise<void> {
         if (this.connected) return;
 
         this.socket = new WebSocket(
