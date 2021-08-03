@@ -112,6 +112,10 @@ export class Node {
         this.socket.on("close", this.close.bind(this));
         this.socket.on("message", this.message.bind(this));
         this.socket.on("error", this.error.bind(this));
+
+        if (typeof this.options.pingInterval == "number") {
+            const timer: NodeJS.Timer = setInterval(() => this.connected ? this.send({ op: WSOpCodes.PING }) : clearInterval(timer), this.options.pingInterval).unref();
+        }
     }
 
     /**
@@ -403,4 +407,5 @@ export class Node {
  * @param {number} [retryAmount] Retry Amount
  * @param {number} [retryDelay] Retry Delay
  * @param {number} [requestTimeout] Request Timeout
+ * @param {number} [pingInterval] The ping interval to send pings to the gateway if needed. 
  */

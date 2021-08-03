@@ -48,8 +48,10 @@ export interface NodeOptions {
     retryAmount?: number;
     /** The retryDelay for the node. */
     retryDelay?: number;
-    /** The timeout used for api calls */
+    /** The timeout used for api calls. */
     requestTimeout?: number;
+    /** The ping interval to send pings to the gateway if needed. */
+    pingInterval?: number;
 }
 
 export interface SearchQuery {
