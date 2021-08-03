@@ -106,4 +106,4 @@ export interface PlaylistInfo {
     extractor: string;
 }
 
-export type Snowflake = string;
+export type Snowflake = `${bigint}`;
