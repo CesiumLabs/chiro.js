@@ -120,7 +120,7 @@ export interface Manager {
  * @extends {EventEmitter}
  * @example
  * const manager = new Manager({
- *     node: { host: "localhost", port: 3000, password: "MySecurePassword" },
+ *     node: { host: "localhost", port: 3000, password: "SwagLordNitroUser12345" },
  *     send(id, payload) {
  *          client.guilds.cache.get(id).shards.send(payload);
  *     }
@@ -163,7 +163,7 @@ export class Manager extends EventEmitter {
      * @param {ManagerOptions} options The options which are necessary for the Manager.
      * @example
      * const manager = new Manager({
-     *     node: { host: "localhost", port: 3000, password: "MySecurePassword" },
+     *     node: { host: "localhost", port: 3000, password: "SwagLordNitroUser12345" },
      *     send(id, payload){
      *          client.guilds.cache.get(id).shards.send(payload);
      *     }
