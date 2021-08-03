@@ -191,13 +191,13 @@ export class Player {
         
         return await new Promise((resolve, reject) => {
             const connectInterval = setInterval(() => {
-                if (this.connected) {
+                if (this.state == "connected") {
                     this.sendPlayPost(this.queue.current);
                     return resolve(null);
+                } else if (this.state == "disconnected") {
+                    clearInterval(connectInterval);
+                    return reject(new ChiroError(`Player has been disconnected but has been assigned to play!`));
                 }
-
-                clearInterval(connectInterval);
-                reject(new ChiroError(`Timed out to play the player because the player's state is still ${this.state}.`));
             }, 1000);
         });
     }
