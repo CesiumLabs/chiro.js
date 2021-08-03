@@ -101,10 +101,10 @@ export interface Manager {
 
     /**
      * Emitted when a new Player is created.
-     * @event Manager#playerCreated
+     * @event Manager#playerCreate
      * @param {Player} player Player
      */
-    on(event: "playerCreated", listener: (player: Player) => void): this;
+    on(event: "playerCreate", listener: (player: Player) => void): this;
 
     /**
      * Emitted when a player is destroyed.
@@ -234,7 +234,11 @@ export class Manager extends EventEmitter {
      * @returns {Player}
      */
     public create(options: PlayerOptions): Player {
-        return this.players.get(options.guild) || new Player(options);
+        let player = this.players.get(options.guild);
+        if (player) return player;
+        player = new Player(options);
+        this.emit("playerCreate", player);
+        return player;
     }
 
     /**
