@@ -18,6 +18,36 @@ export class Node {
     public socket: WebSocket | null = null;
 
     /**
+     * The base url where the node fetches.
+     * @type {string}
+     */
+    public baseURL: string;
+
+    /**
+     * The password for the node.
+     * @type {string}
+     */
+    public password: string;
+
+    /**
+     * The ping interval for the Node, if needed.
+     * @type {number | undefined}
+     */
+    public pingInterval?: number;
+
+    /**
+     * The number of retries done by the node.
+     * @type {number | undefined}
+     */
+    public retryAmount?: number;
+
+    /**
+     * The amount of time in milliseconds to set interval on each retry.
+     * @type {number | undefined}
+     */
+    public retryDelay?: number;
+
+    /**
      * The Manager of this node.
      * @type {Manager}
      */
@@ -53,12 +83,12 @@ export class Node {
      * @hideconstructor
      * @param {NodeOptions} options The options required for the Node.
      */
-    constructor(public options: NodeOptions) {
+    constructor(options: NodeOptions) {
         if (!Node._manager) throw new ChiroError("Static manager has not been initiated yet for Node.");
         this.manager = Node._manager;
         if (this.manager.node) return this.manager.node;
 
-        this.options = {
+        options = {
             port: 3000,
             password: "SwagLordNitroUser12345",
             secure: false,
@@ -67,6 +97,11 @@ export class Node {
             ...options,
         };
 
+        this.pingInterval = options.pingInterval;
+        this.password = options.password;
+        this.retryAmount = options.retryAmount;
+        this.retryDelay = options.retryDelay;
+        this.baseURL = `http${options.secure ? "s" : ""}://${options.host}${options.port ? `:${options.port}` : ""}/`;
         this.manager.node = this;
         this.manager.emit("nodeCreate", this);
     }
@@ -98,14 +133,9 @@ export class Node {
     public connect() {
         if (this.connected) return;
 
-        const headers = {
-            Authorization: this.options.password,
-            "client-id": this.manager.clientID,
-        };
-
         this.socket = new WebSocket(
-            `ws${this.options.secure ? "s" : ""}://${this.options.host}:${this.options.port}/`,
-            { headers }
+            this.baseURL.replace('http', 'ws'),
+            { headers: { Authorization: this.password, "client-id": this.manager.clientID } }
         );
 
         this.socket.on("open", this.open.bind(this));
@@ -113,8 +143,8 @@ export class Node {
         this.socket.on("message", this.message.bind(this));
         this.socket.on("error", this.error.bind(this));
 
-        if (typeof this.options.pingInterval == "number") {
-            const timer: NodeJS.Timer = setInterval(() => this.connected ? this.send({ op: WSOpCodes.PING }) : clearInterval(timer), this.options.pingInterval).unref();
+        if (typeof this.pingInterval == "number") {
+            const timer: NodeJS.Timer = setInterval(() => this.connected ? this.send({ op: WSOpCodes.PING }) : clearInterval(timer), this.pingInterval).unref();
         }
     }
 
@@ -152,9 +182,7 @@ export class Node {
         path: string,
         body?: Record<string, unknown>
     ): Promise<Response> {
-        const url =`http${this.options.secure ? "s" : ""}://${this.options.host}:${this.options.port}/${path}`;
-
-        return fetch(url, {
+        return fetch(`${this.baseURL}/${path}`, {
             method,
             body: JSON.stringify(body || {}),
             headers: {
@@ -175,8 +203,8 @@ export class Node {
         if (!this.socket) return;
 
         this.reconnectTimeout = setTimeout(() => {
-            if (this.reconnectAttempts >= this.options.retryAmount) {
-                this.manager.emit("error", new ChiroEventError(ChiroEventErrorKind.Node, new Error(`Unable to connect after ${this.options.retryAmount} attempts.`)));
+            if (this.reconnectAttempts >= this.retryAmount) {
+                this.manager.emit("error", new ChiroEventError(ChiroEventErrorKind.Node, new Error(`Unable to connect after ${this.retryAmount} attempts.`)));
                 return this.destroy();
             }
             
@@ -185,7 +213,7 @@ export class Node {
             this.manager.emit("nodeReconnect", this);
             this.connect();
             this.reconnectAttempts++;
-        }, this.options.retryDelay);
+        }, this.retryDelay);
     }
 
     /**

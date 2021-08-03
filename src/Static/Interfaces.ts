@@ -37,7 +37,7 @@ export interface NodeOptions {
     /** The host for the node. */
     host: string;
     /** The port for the node. */
-    port?: number;
+    port?: number | boolean;
     /** The password for the node. */
     password?: string;
     /** Whether the host uses SSL. */
