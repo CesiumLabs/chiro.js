@@ -294,7 +294,7 @@ export class Node {
 
                 case WSEvents.VOICE_CONNECTION_READY:
                     player.state = "connected";
-                    if (player) this.manager.emit("voiceReady", player, payload);
+                    if (player) this.manager.emit("voiceReady", player);
                     break;
 
                 case WSEvents.VOICE_CONNECTION_ERROR:
@@ -337,7 +337,7 @@ export class Node {
         switch (payload.t) {
             case WSEvents.TRACK_START:
                 player.playing = true;
-                this.manager.emit("trackStart", player, track, payload);
+                this.manager.emit("trackStart", player, track);
                 break;
 
             case WSEvents.QUEUE_END:
@@ -394,7 +394,7 @@ export class Node {
      * @ignore
      */
     protected queueEnd(player: Player, payload: Payload) {
-        this.manager.emit("queueEnd", player, payload);
+        this.manager.emit("queueEnd", player);
     }
 
     /**

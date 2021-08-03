@@ -27,7 +27,7 @@ export interface Manager {
      * Emitted when the node gets reconnected.
      * @event Manager#nodeReconnect
      * @param {Node} node Nexus Node
-     */
+     */ 
     on(event: "nodeReconnect", listener: (node: Node) => void): this;
 
     /**
