@@ -100,7 +100,7 @@ export class Node {
 
         const headers = {
             Authorization: this.options.password,
-            "client-id": this.manager.options.clientID,
+            "client-id": this.manager.clientID,
         };
 
         this.socket = new WebSocket(

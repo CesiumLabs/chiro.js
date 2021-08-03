@@ -134,6 +134,12 @@ export class Manager extends EventEmitter {
     public readonly players = new Collection<Snowflake, Player>();
 
     /**
+     * The client id of the bot which is been managed.
+     * @type {Snowflake}
+     */
+    public clientID: Snowflake;
+
+    /**
      * The Node of the manager.
      * @type {Node}
      */
@@ -193,7 +199,7 @@ export class Manager extends EventEmitter {
      */
     public init(clientID: Snowflake): this {
         if (!this.initiated) {
-            if (clientID) this.options.clientID = clientID;
+            if (clientID) this.clientID = clientID;
             this.node.connect();
             this.initiated = true;
         }

@@ -18,8 +18,6 @@ export interface Payload {
 export interface ManagerOptions {
     /** Node need to connect */
     node?: NodeOptions;
-    /** Client ID */
-    clientID?: Snowflake;
     /** Send payload to guild */
     send(id: Snowflake, payload: Payload): void;
 }
