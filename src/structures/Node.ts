@@ -263,7 +263,7 @@ export class Node {
             switch (payload.t) {
                 case WSEvents.READY:
                     this.manager.accessToken = payload.d.access_token;
-                    this.manager.emit("ready", payload);
+                    this.manager.emit("ready");
                     break;
 
                 case WSEvents.VOICE_CONNECTION_READY:

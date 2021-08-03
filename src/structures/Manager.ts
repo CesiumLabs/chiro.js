@@ -225,9 +225,9 @@ export class Manager extends EventEmitter {
         var player = this.players.get(options.guild);
         if (player) return player;
 
-        var player = await new Player(options, this).connect();
+        var player = new Player(options, this);
         this.players.set(options.guild, player);
-        this.emit("playerCreate", player);
+        this.emit("playerCreate", await player.connect());
         return player;
     }
 
