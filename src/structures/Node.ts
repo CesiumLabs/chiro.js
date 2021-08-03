@@ -1,5 +1,6 @@
 import WebSocket from "ws";
 import fetch, { Response } from "node-fetch";
+import { inspect } from "util";
 import { Manager } from "./Manager";
 import { Player } from "./Player";
 import { ChiroError, ChiroEventError, ChiroEventErrorKind } from "./Error";
@@ -178,12 +179,12 @@ export class Node {
      * @param {Object} body The body of the request.
      * @returns {Promise<Response>}
      */
-    public makeRequest(
+    public async makeRequest(
         method: "GET" | "POST" | "PATCH" | "DELETE",
         path: string,
         body?: Record<string, unknown>
     ): Promise<Response> {
-        return fetch(`${this.baseURL}/${path}`, {
+        const response = await fetch(`${this.baseURL}/${path}`, {
             method,
             body: body ? JSON.stringify(body) : null,
             headers: {
@@ -191,6 +192,9 @@ export class Node {
                 "Content-Type": "application/json",
             },
         }); 
+
+        if (!response.ok) throw new ChiroError(`Server sent an unusual response ${inspect(response)} with status code as ${response.status} ${response.statusText}.`);
+        return response;
     }
 
     /**
