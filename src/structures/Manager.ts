@@ -262,7 +262,7 @@ export class Manager extends EventEmitter {
      * 
      * @param {Object} data The data from the event.
      * @example
-     * client.on('raw', manager.updateVoiceState);
+     * client.on('raw', manager.updateVoiceState.bind(manager));
      */
     public updateVoiceState(data: any) {
         if (["VOICE_SERVER_UPDATE", "VOICE_STATE_UPDATE"].includes(data?.t)) 

@@ -69,7 +69,7 @@ client.on("message", async (message) => {
     }
 });
 
-client.on('raw', manager.updateVoiceState);
+client.on('raw', manager.updateVoiceState.bind(manager));
 
 client.login("token");
 ```
@@ -80,7 +80,7 @@ client.login("token");
 - [Documentation](https://chirojs.openian.dev/)
 - [Discord server](https://menhera-chan.in/support)
 - [Nexus Discord server](https://snowflakedev.org/discord)
-- [GitHub](https://github.com/OpenianDevelopment/chiro.js)
+- [GitHub](https://github.com/DevSnowflake/chiro.js)
 - [NPM](https://www.npmjs.com/package/chiro.js)
 
 ## Help
