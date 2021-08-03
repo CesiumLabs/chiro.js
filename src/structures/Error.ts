@@ -5,7 +5,8 @@ import { Payload } from "../Static/Interfaces";
 export enum ChiroEventErrorKind {
     Voice = "VOICE",
     Track = "TRACK",
-    AudioPlayer = "AUDIO_PLAYER"
+    AudioPlayer = "AUDIO_PLAYER",
+    Node = "NODE"
 }
 
 // The common error instance for Chiro.js library.
@@ -30,15 +31,15 @@ export class ChiroEventError extends Error {
      * Creates a chiro event error instance for debugging.
      * 
      * @param {ChiroEventError} kind The event error kind.
-     * @param {Payload} payload The error payload received from the ws api.
+     * @param {Payload | Error} error The error payload received from the ws api.
      * @param {Player} player The player where the error was caught.
      */
     constructor(
         public readonly kind: ChiroEventErrorKind,
-        public payload: Payload,
-        public player: Player
+        public error: Payload | Error,
+        public player?: Player
     ) {
-        super(`[${kind}]: ${payload}`);
+        super(`[${kind}]: ${error}`);
     }
 
 }

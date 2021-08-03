@@ -1,153 +1,107 @@
 import { Manager } from "./Manager";
 import { Node } from "./Node";
 import { Queue } from "./Queue";
-import { ChiroError, ChiroEventError, ChiroEventErrorKind } from "./Error";
 import { Filters } from "../Static/Constants";
-import {
-    PlayerOptions,
-    SearchQuery,
-    SearchResult,
-    TrackData,
-    Snowflake
-} from "../Static/Interfaces";
-
+import { PlayerOptions, SearchQuery, SearchResult, Snowflake } from "../Static/Interfaces";
 /**
  * The Player Class
  */
-export class Player {
-
+export declare class Player {
     /**
      * Queue for the player.
      * @type {Queue}
      */
-    public queue: Queue = new Queue();
-
+    queue: Queue;
     /**
      * Boolean stating to repeat the track or not.
      * @type {boolean}
      */
-    public trackRepeat = false;
-
+    trackRepeat: boolean;
     /**
      * Boolean stating to repeat the queue or not.
      * @type {boolean}
      */
-    public queueRepeat = false;
-
+    queueRepeat: boolean;
     /**
      * Boolean stating is the player playing or not.
      * @type {boolean}
      */
-    public playing = false;
-
+    playing: boolean;
     /**
      * The volume of the player.
      * @type {number}
      */
-    public volume: number;
-
+    volume: number;
     /**
      * The node of the player.
      * @type {Node}
      */
-    public node: Node;
-
+    node: Node;
     /**
      * Guild ID.
      * @type Snowflake
      */
-    public guild: Snowflake;
-
+    guild: Snowflake;
     /**
      * The voice channel.
      * @type {string}
      */
-    public voiceChannel: string | null = null;
-
+    voiceChannel: string | null;
     /**
      * The text channel for the player.
      * @type {string}
      */
-    public textChannel: string | null = null;
-
+    textChannel: string | null;
     /** The Manager of the player.
      * @type {Manager}
      */
-    public manager: Manager;
-
+    manager: Manager;
     /**
      * Static manager of the player.
      * @ignore
      * @private
      */
-    private static _manager: Manager;
-
+    private static _manager;
     /**
      * The current state of the player.
      * idle - Not connected yet.
      * connected - Connected to the player.
      * disconnected - Was connected to the player.
      * connecting - Connecting to the player.
-     * 
+     *
      * @type {"connected" | "disconnected" | "connecting"}
      * @hidden
      * @ignore
      */
-    public state: "connected" | "disconnected" | "connecting" = "connecting";
-
+    state: "connected" | "disconnected" | "connecting";
     /**
      * Creates a new player instance.
-     * 
+     *
      * @param {PlayerOptions} options The options nexessary for the player.
      * @hideconstructor
      */
-    constructor(options: PlayerOptions) {
-        if (!Player._manager) throw new ChiroError("Static manager has not been initiated yet for Player.");
-        this.manager = Player._manager;
-
-        if (!this.manager.node) throw new ChiroError("Static manager for the player has no node yet.");
-        if (this.manager.players.has(options.guild)) return this.manager.players.get(options.guild);
-
-        this.guild = options.guild;
-        this.node = this.manager.node;
-        if (options.voiceChannel) this.voiceChannel = options.voiceChannel;
-        if (options.textChannel) this.textChannel = options.textChannel;
-
-        this.manager.players.set(options.guild, this);
-        this.setVolume(options.volume ?? 100);
-        this.connect();
-    }
-
+    constructor(options: PlayerOptions);
     /**
      * Boolean stating is the player connected or not.
      * @readonly
      */
-    public get connected(): boolean {
-        return this.state == "connected";
-    }
-
+    get connected(): boolean;
     /**
      * Boolean stating is the player paused or not.
      * @readonly
      */
-    public get paused(): boolean {
-        return this.connected && !this.playing;
-    }
-
+    get paused(): boolean;
     /**
      * Initialize the static manager for the player.
-     * 
+     *
      * @returns {void}
      * @param {Manager} manager The static manager to set.
      * @ignore
      */
-    public static initStaticManager(manager: Manager)  {
-        this._manager = manager;
-    }
-
+    static initStaticManager(manager: Manager): void;
     /**
      * Search youtube for songs and playlists.
-     * 
+     *
      * @param {SearchQuery} searchQuery The search query options object.
      * @param {Snowflake} requestor The id of the user who requested it.
      * @returns {SearchResult}
@@ -155,140 +109,66 @@ export class Player {
      * const results = await player.search({ query: "Play that funky music" }, message.author);
      * console.log(results);
      */
-    public search(searchQuery: SearchQuery, requestor: Snowflake): Promise<SearchResult> {
-        return this.manager.search(searchQuery, requestor);
-    }
-
+    search(searchQuery: SearchQuery, requestor: Snowflake): Promise<SearchResult>;
     /**
      * Create a voice channel Subscription to nexus.
      * @returns {Promise<void>}
      */
-    public async connect()  {
-        if (!this.voiceChannel) throw new ChiroError("No voice channel has been set for the player to connect.");
-        await this.node.makeRequest("POST",`api/subscription/${this.guild}/${this.voiceChannel}`);
-        this.state = "connecting";
-    }
-
+    connect(): Promise<void>;
     /**
      * Disconnects the voice channel.
      * @returns {Promise<void>}
      */
-    public async disconnect(): Promise<this> {
-        if (!this.voiceChannel) return this;
-        if (this.playing) this.stop();
-        await this.node.makeRequest("DELETE", `api/subscription/${this.guild}/${this.voiceChannel}`);
-        this.voiceChannel = null;
-        this.state = "disconnected";
-    }
-
+    disconnect(): Promise<this>;
     /**
      * Play the songs added in the queue.
      * @returns {Promise<void>}
      */
-    public async play() {
-        if (!this.queue.current) throw new ChiroError("Queue is empty to play!");
-        if (this.state == "disconnected") await this.connect();
-        
-        return await new Promise((resolve, reject) => {
-            const connectInterval = setInterval(() => {
-                if (this.connected) {
-                    this.sendPlayPost(this.queue.current);
-                    return resolve(null);
-                }
-
-                clearInterval(connectInterval);
-                reject(new ChiroError(`Timed out to play the player because the player's state is still ${this.state}.`));
-            }, 1000);
-        });
-    }
-
+    play(): Promise<unknown>;
     /**
      * Send POST request to NEXUS to play the song.
-     * 
+     *
      * @param {TrackData} track Track to Play the song
      * @private
      */
-    private async sendPlayPost(track: TrackData) {
-        await this.node.makeRequest("POST", `api/player/${this.guild}`, { track: { url: track.url } })
-        this.playing = true;
-    }
-
+    private sendPlayPost;
     /**
      * Apply filters through the Nexus API.
      * @param {Filters} filter Music Filter to Apply
      */
-    public applyFilters(filter: Filters) {
-        return this.node
-            .makeRequest("PATCH", `api/player/${this.guild}`, { data: { encoder_args: ["-af", filter] } })
-            .then(res => {
-                if (!res.ok) this.manager.emit("playerError", res);
-            });
-    }
-
+    applyFilters(filter: Filters): Promise<void>;
     /**
      * Set the volume of the player.
      * @param {number} volume Volume to set.
      * @returns {Promise<void>}
      */
-    public async setVolume(volume: number)  {
-        this.volume = volume;
-        await this.node.makeRequest("PATCH", `api/player/${this.guild}`, { data: { volume: this.volume } });
-    }
-
+    setVolume(volume: number): Promise<void>;
     /**
      * Destroy the player.
      * @returns {Promise<void>}
      */
-    public async destroy()  {
-        if (this.playing) await this.stop();
-        await this.disconnect();
-        this.manager.emit("playerDestroy", this);
-        this.manager.players.delete(this.guild);
-    }
-
+    destroy(): Promise<void>;
     /**
      * Clear the queue and stop the player.
      * @returns {Promise<void>}
      */
-    public async stop()  {
-        this.queue.current = null;
-        this.queue.previous = null;
-        this.queue.clear();
-        this.playing = false;
-        await this.skip();
-        await this.destroy();
-    }
-
+    stop(): Promise<void>;
     /**
      * Skip the current playing song.
      * @returns {Promise<void>}
      */
-    public async skip() {
-        await this.node.makeRequest("DELETE", `api/player/${this.guild}`);
-    }
-
+    skip(): Promise<void>;
     /**
      * Pause the player.
      * @returns {Promise<void>}
      */
-    public async pause() {
-        if (this.paused) return;
-        this.playing = false;
-        await this.node.makeRequest("PATCH", `api/player/${this.guild}`, { data: { paused: true } });
-    }
-
+    pause(): Promise<void>;
     /**
      * Resume the player.
      * @returns {Promise<void>}
      */
-    public async resume() {
-        if (this.playing) return;
-        this.playing = true;
-        await this.node.makeRequest("PATCH", `api/player/${this.guild}`, { data: { paused: false } });
-    }
-
+    resume(): Promise<void>;
 }
-
 /**
  * @typedef {Object} PlayerOptions
  * @param {Snowflake} guild ID of the guild
@@ -296,7 +176,6 @@ export class Player {
  * @param {Snowflake} voiceChannel ID of voice channel
  * @param {number} [volume] Initial volume
  */
-
 /**
  * The available audio filters
  * @typedef {string} Filters
