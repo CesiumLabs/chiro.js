@@ -6,13 +6,6 @@ import { ChiroError, ChiroEventError, ChiroEventErrorKind } from "./Error";
 import { NodeOptions, Payload, TrackData } from "../Static/Interfaces";
 import { WSEvents, WSOpCodes } from "../Static/Constants";
 
-function generateRandomPassword(): string {
-    const characters = 'abcdefghijklmnopqrstuvwxyz123456789';
-    let password = '';
-    for (let i = 0; i < 22; i++) password += characters[Math.floor(Math.random() * characters.length)];
-    return password;
-}
-
 /**
  * The Node class which does the api management.
  */
@@ -67,7 +60,7 @@ export class Node {
 
         this.options = {
             port: 3000,
-            password: generateRandomPassword(),
+            password: "SwagLordNitroUser12345",
             secure: false,
             retryAmount: 5,
             retryDelay: 30e3,
