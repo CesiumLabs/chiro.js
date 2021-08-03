@@ -232,12 +232,13 @@ export class Manager extends EventEmitter {
      * Creates a player instance and add it to players collection.
      * 
      * @param {PlayerOptions} options Player Options to create one, if there is no existing one.
-     * @returns {Player}
+     * @returns {Promise<Player>}
      */
-    public create(options: PlayerOptions): Player {
+    public async create(options: PlayerOptions): Promise<Player> {
         let player = this.players.get(options.guild);
         if (player) return player;
         player = new Player(options);
+        await player.connect();
         this.emit("playerCreate", player);
         return player;
     }

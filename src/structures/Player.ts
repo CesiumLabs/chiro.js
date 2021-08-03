@@ -115,7 +115,6 @@ export class Player {
 
         this.manager.players.set(options.guild, this);
         this.setVolume(options.volume ?? 100);
-        this.connect();
     }
 
     /**
@@ -198,7 +197,7 @@ export class Player {
                         clearInterval(connectInterval);
                         return reject(new ChiroError(`Player has been disconnected but has been assigned to play!`));
                     }
-                }, 50000);
+                }, 10000);
             }
         });
     }
