@@ -70,18 +70,6 @@ export class Player {
      */
     public textChannel: string | null = null;
 
-    /** The Manager of the player.
-     * @type {Manager}
-     */
-    public manager: Manager;
-
-    /**
-     * Static manager of the player.
-     * @ignore
-     * @private
-     */
-    private static _manager: Manager;
-
     /**
      * The current state of the player.
      * idle - Not connected yet.
@@ -99,21 +87,17 @@ export class Player {
      * Creates a new player instance.
      * 
      * @param {PlayerOptions} options The options nexessary for the player.
+     * @param {Manager} manager The manager for the player.
      * @hideconstructor
      */
-    constructor(options: PlayerOptions) {
-        if (!Player._manager) throw new ChiroError("Static manager has not been initiated yet for Player.");
-        this.manager = Player._manager;
-
-        if (!this.manager.node) throw new ChiroError("Static manager for the player has no node yet.");
-        if (this.manager.players.has(options.guild)) return this.manager.players.get(options.guild);
+    constructor(options: PlayerOptions, public manager: Manager) {
+        if (!manager) throw new ChiroError("Invalid manager has been provided for Player.");
+        if (manager.players.has(options.guild)) return manager.players.get(options.guild);
 
         this.guild = options.guild;
         this.node = this.manager.node;
         if (options.voiceChannel) this.voiceChannel = options.voiceChannel;
         if (options.textChannel) this.textChannel = options.textChannel;
-
-        this.manager.players.set(options.guild, this);
     }
 
     /**
@@ -131,18 +115,7 @@ export class Player {
     public get paused(): boolean {
         return this.connected && !this.playing;
     }
-
-    /**
-     * Initialize the static manager for the player.
-     * 
-     * @returns {void}
-     * @param {Manager} manager The static manager to set.
-     * @ignore
-     */
-    public static initStaticManager(manager: Manager)  {
-        this._manager = manager;
-    }
-
+    
     /**
      * Search youtube for songs and playlists.
      * 
@@ -161,13 +134,14 @@ export class Player {
      * Create a voice channel Subscription to nexus.
      * 
      * @param {number} volume The volume the player should connect with.
-     * @returns {Promise<void>}
+     * @returns {Promise<Player>}
      */
-    public async connect(volume?: number)  {
+    public async connect(volume?: number) {
         if (!this.voiceChannel) throw new ChiroError("No voice channel has been set for the player to connect.");
         await this.node.makeRequest("POST",`api/subscription/${this.guild}/${this.voiceChannel}`);
         await this.setVolume(volume || 100);
         this.state = "connecting";
+        return this;
     }
 
     /**

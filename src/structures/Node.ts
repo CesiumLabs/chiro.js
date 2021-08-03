@@ -49,20 +49,6 @@ export class Node {
     public retryDelay?: number;
 
     /**
-     * The Manager of this node.
-     * @type {Manager}
-     */
-    public manager: Manager;
-
-    /**
-     * Static manager for this node.
-     * @type {Manager}
-     * @ignore
-     * @private
-     */
-    private static _manager: Manager;
-
-    /**
      * Reconnect Timeout.
      * @type {NodeJS.Timeout}
      * @ignore
@@ -83,11 +69,11 @@ export class Node {
      * 
      * @hideconstructor
      * @param {NodeOptions} options The options required for the Node.
+     * @param {Manager} manager The manager for this node.
      */
-    constructor(options: NodeOptions) {
-        if (!Node._manager) throw new ChiroError("Static manager has not been initiated yet for Node.");
-        this.manager = Node._manager;
-        if (this.manager.node) return this.manager.node;
+    constructor(options: NodeOptions, public manager: Manager) {
+        if (!manager) throw new ChiroError("Invalid manager has been provided for Node.");
+        if (manager.node) return manager.node;
 
         options = {
             port: 3000,
@@ -103,8 +89,6 @@ export class Node {
         this.retryAmount = options.retryAmount;
         this.retryDelay = options.retryDelay;
         this.baseURL = `http${options.secure ? "s" : ""}://${options.host}${options.port ? `:${options.port}` : ""}`;
-        this.manager.node = this;
-        this.manager.emit("nodeCreate", this);
     }
 
     /**
@@ -115,16 +99,6 @@ export class Node {
      */
     public get connected(): boolean {
         return this.socket ? this.socket.readyState === WebSocket.OPEN : false;
-    }
-
-    /**
-     * Inititate the static manager for this node.
-     * 
-     * @ignore
-     * @param {Manager} manager Manager
-     */
-    public static initStaticManager(manager: Manager) {
-        this._manager = manager;
     }
 
     /**

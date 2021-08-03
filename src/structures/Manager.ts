@@ -173,16 +173,8 @@ export class Manager extends EventEmitter {
      */
     constructor(options: ManagerOptions) {
         super();
-
-        Player.initStaticManager(this);
-        Node.initStaticManager(this);
-
-        this.options = {
-            node: { identifier: "default", host: "localhost" },
-            ...options,
-        };
-
-        if (this.options.node) new Node(this.options.node);
+        this.options = { node: { identifier: "default", host: "localhost" }, ...options };
+        this.node = new Node(this.options.node, this);
     }
 
     /**
@@ -195,7 +187,8 @@ export class Manager extends EventEmitter {
      */
     public init(clientID: Snowflake): this {
         if (!this.initiated) {
-            if (clientID) this.clientID = clientID;
+            if (!clientID) throw new ChiroError("No client id has been provided.");
+            this.clientID = clientID;
             this.node.connect();
             this.initiated = true;
         }
@@ -218,7 +211,7 @@ export class Manager extends EventEmitter {
             .makeRequest("GET", `api/tracks/search?query=${encodeURIComponent(searchQuery.query)}&identifier=${searchQuery.identifier || 'ytsearch'}`)
             .then(res => res.json());
 
-        if (!response || !response.results) throw new ChiroError("Responded results from the server seems to be empty.");
+        if (!response.results) throw new ChiroError("Responded results from the server seems to be empty.");
         return resolveTracks(response, requestor)
     }
 
@@ -229,10 +222,11 @@ export class Manager extends EventEmitter {
      * @returns {Promise<Player>}
      */
     public async createPlayer(options: PlayerOptions): Promise<Player> {
-        let player = this.players.get(options.guild);
+        var player = this.players.get(options.guild);
         if (player) return player;
-        player = new Player(options);
-        await player.connect(options.volume);
+
+        var player = await new Player(options, this).connect();
+        this.players.set(options.guild, player);
         this.emit("playerCreate", player);
         return player;
     }
