@@ -28,9 +28,9 @@ export interface PlayerOptions {
     /** Server/Guild ID */
     guild: Snowflake;
     /** Text Channel to send message in */
-    textChannel: string;
+    textChannel: Snowflake;
     /** Voice Channel for client to connect */
-    voiceChannel: string;
+    voiceChannel: Snowflake;
     /** Initial volume set for the client */
     volume?: number;
 }
