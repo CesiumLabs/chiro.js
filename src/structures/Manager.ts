@@ -266,7 +266,8 @@ export class Manager extends EventEmitter {
      * client.on('raw', manager.updateVoiceState);
      */
     public updateVoiceState(data: any) {
-        if (data && data.t === "VOICE_SERVER_UPDATE" || data.t === "VOICE_STATE_UPDATE") this.node.socket.send(JSON.stringify(data));
+        if (["VOICE_SERVER_UPDATE", "VOICE_STATE_UPDATE"].includes(data?.t)) 
+            this.node.socket.send(JSON.stringify(data));
     }
 }
 
