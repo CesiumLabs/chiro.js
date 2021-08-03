@@ -219,7 +219,7 @@ export class Manager extends EventEmitter {
      */
     public async search(searchQuery: SearchQuery, requestor: Snowflake): Promise<SearchResult> {
         const response = await this.node
-            .makeRequest("GET", `api/tracks/search?query=${encodeURIComponent(searchQuery.query)}&identifier=${searchQuery.identifier || 'ytsearch'}`,)
+            .makeRequest("GET", `api/tracks/search?query=${encodeURIComponent(searchQuery.query)}&identifier=${searchQuery.identifier || 'ytsearch'}`)
             .then(res => res.json());
 
         if (!response || !response.results) throw new ChiroError("Responded results from the server seems to be empty.");

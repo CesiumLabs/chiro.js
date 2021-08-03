@@ -185,7 +185,7 @@ export class Node {
     ): Promise<Response> {
         return fetch(`${this.baseURL}/${path}`, {
             method,
-            body: JSON.stringify(body || {}),
+            body: body ? JSON.stringify(body) : null,
             headers: {
                 Authorization: this.manager.accessToken,
                 "Content-Type": "application/json",
