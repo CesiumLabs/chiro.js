@@ -101,7 +101,7 @@ export class Node {
         this.password = options.password;
         this.retryAmount = options.retryAmount;
         this.retryDelay = options.retryDelay;
-        this.baseURL = `http${options.secure ? "s" : ""}://${options.host}${options.port ? `:${options.port}` : ""}/`;
+        this.baseURL = `http${options.secure ? "s" : ""}://${options.host}${options.port ? `:${options.port}` : ""}`;
         this.manager.node = this;
         this.manager.emit("nodeCreate", this);
     }
