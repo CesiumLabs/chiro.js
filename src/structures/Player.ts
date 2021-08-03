@@ -190,15 +190,16 @@ export class Player {
         if (this.state == "disconnected") await this.connect();
         
         return await new Promise((resolve, reject) => {
-            const connectInterval = setInterval(() => {
-                if (this.state == "connected") {
-                    this.sendPlayPost(this.queue.current);
-                    return resolve(null);
-                } else if (this.state == "disconnected") {
-                    clearInterval(connectInterval);
-                    return reject(new ChiroError(`Player has been disconnected but has been assigned to play!`));
-                }
-            }, 1000);
+            if (this.state == "connected") this.sendPlayPost(this.queue.current).then(() => resolve(null), reject);
+            else {
+                const connectInterval = setInterval(() => {
+                    if (this.state == "connected") this.sendPlayPost(this.queue.current).then(() => resolve(null), reject);
+                    else if (this.state == "disconnected") {
+                        clearInterval(connectInterval);
+                        return reject(new ChiroError(`Player has been disconnected but has been assigned to play!`));
+                    }
+                }, 50000);
+            }
         });
     }
 
