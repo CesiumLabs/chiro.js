@@ -85,9 +85,4 @@ client.login("token");
 
 ## Help
 
-If you don't understand something in the documentation, you are experiencing problems, or you just need a gentle
-nudge in the right direction kindly create an github issue or join our official [Chiro.js Server](https://menhera-chan.in/support).
-
-## Notice
-
-The documentation is WIP. This is just a temporary docs
+If you don't understand something in the documentation, you are experiencing problems, or you just need a gentle nudge in the right direction kindly create an github issue or join our official [Chiro.js Support Server](https://snowflakedev.org/discord).
