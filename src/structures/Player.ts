@@ -114,7 +114,6 @@ export class Player {
         if (options.textChannel) this.textChannel = options.textChannel;
 
         this.manager.players.set(options.guild, this);
-        this.setVolume(options.volume ?? 100);
     }
 
     /**
@@ -160,11 +159,14 @@ export class Player {
 
     /**
      * Create a voice channel Subscription to nexus.
+     * 
+     * @param {number} volume The volume the player should connect with.
      * @returns {Promise<void>}
      */
-    public async connect()  {
+    public async connect(volume?: number)  {
         if (!this.voiceChannel) throw new ChiroError("No voice channel has been set for the player to connect.");
         await this.node.makeRequest("POST",`api/subscription/${this.guild}/${this.voiceChannel}`);
+        await this.setVolume(volume || 100);
         this.state = "connecting";
     }
 

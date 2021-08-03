@@ -34,7 +34,7 @@ const Chiro = require("chiro.js");
 const client = new Discord.Client();
 const manager = new Chiro.Manager({    
     node: { host: "localhost", port: 3000, password: "SwagLordNitroUser12345", secure: true },
-    send(id, payload) {
+    onData(id, payload) {
         const guild = client.guilds.cache.get(id);
         if (guild) guild.shard.send(payload);
     },
@@ -57,7 +57,7 @@ client.on("ready", () => {
 
 client.on("message", async (message) => {
     if (message.content === "play") {
-        const player = manager.create({
+        const player = await manager.createPlayer({
             guild: message.guild.id,
             textChannel: message.channel.id,
             voiceChannel: message.member.voice.channel.id,

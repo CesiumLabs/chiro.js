@@ -57,10 +57,7 @@ export interface Manager {
      * @param {Player} player Player
      * @param {TrackData} Track Current Track
      */
-    on(
-        event: "trackStart",
-        listener: (player: Player, track: TrackData) => void
-    ): this;
+    on(event: "trackStart", listener: (player: Player, track: TrackData) => void): this;
 
     /**
      * Emitted when the track ends.
@@ -68,10 +65,7 @@ export interface Manager {
      * @param {Player} player Player
      * @param {TrackData} Track Ended Track
      */
-    on(
-        event: "trackEnd",
-        listener: (player: Player, track: TrackData) => void
-    ): this;
+    on(event: "trackEnd", listener: (player: Player, track: TrackData) => void): this;
 
     /**
      * Emitted when the Queue ends.
@@ -123,7 +117,7 @@ export interface Manager {
  * @example
  * const manager = new Manager({
  *     node: { host: "localhost", port: 3000, password: "SwagLordNitroUser12345" },
- *     send(id, payload) {
+ *     onData(id, payload) {
  *          client.guilds.cache.get(id).shards.send(payload);
  *     }
  * })
@@ -172,7 +166,7 @@ export class Manager extends EventEmitter {
      * @example
      * const manager = new Manager({
      *     node: { host: "localhost", port: 3000, password: "SwagLordNitroUser12345" },
-     *     send(id, payload){
+     *     onData(id, payload) {
      *          client.guilds.cache.get(id).shards.send(payload);
      *     }
      * })
@@ -229,16 +223,16 @@ export class Manager extends EventEmitter {
     }
 
     /**
-     * Creates a player instance and add it to players collection.
+     * Creates a new player instance and add it to players collection.
      * 
      * @param {PlayerOptions} options Player Options to create one, if there is no existing one.
      * @returns {Promise<Player>}
      */
-    public async create(options: PlayerOptions): Promise<Player> {
+    public async createPlayer(options: PlayerOptions): Promise<Player> {
         let player = this.players.get(options.guild);
         if (player) return player;
         player = new Player(options);
-        await player.connect();
+        await player.connect(options.volume);
         this.emit("playerCreate", player);
         return player;
     }

@@ -129,10 +129,9 @@ export class Node {
 
     /**
      * Creates a WS connection with the Websocket API.
-     * @returns {Promise<void>}
      * @ignore
      */
-    public connect(): Promise<void> {
+    public connect() {
         if (this.connected) return;
 
         this.socket = new WebSocket(
@@ -193,7 +192,7 @@ export class Node {
             },
         }); 
 
-        if (!response.ok) throw new ChiroError(`Server sent an unusual response ${inspect(response)} with status code as ${response.status} ${response.statusText}.`);
+        if (!response.ok) throw new ChiroError(`${method} ${this.baseURL}/${path} sent an unusual response as ${response.status} ${response.statusText}. ${inspect(response)}`);
         return response;
     }
 
@@ -277,7 +276,7 @@ export class Node {
                     break;
 
                 case WSOpCodes.VOICE_STATE_UPDATE:
-                    this.manager.options.send(payload.d.d.guild_id, payload.d);
+                    this.manager.options.onData(payload.d.d.guild_id, payload.d);
                     break;
                     
                 default:

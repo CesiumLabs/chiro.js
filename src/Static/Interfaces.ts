@@ -16,10 +16,10 @@ export interface Payload {
 }
 
 export interface ManagerOptions {
-    /** Node need to connect */
+    /** Options for the node which is needed to connect. */
     node?: NodeOptions;
-    /** Send payload to guild */
-    send(id: Snowflake, payload: Payload): void;
+    /** A required event to receive payload data. */
+    onData(id: Snowflake, payload: Payload): void;
 }
 
 export interface PlayerOptions {
