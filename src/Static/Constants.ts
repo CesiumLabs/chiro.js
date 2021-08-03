@@ -2,6 +2,22 @@ export enum WSOpCodes {
     HELLO = 0,
     VOICE_STATE_UPDATE = 1,
     IDENTIFY = 10,
+    PING = 11,
+    PONG = 12
+}
+
+export enum WSCloseCodes {
+    UNKNOWN = 4000,
+    NO_CLIENT_ID = 4001,
+    NO_AUTH = 4002,
+    NO_GUILD = 4003,
+    DECODE_ERROR = 4004,
+    UNKNOWN_OPCODE = 4005,
+    SESSION_EXPIRED = 4006,
+    SERVER_CLOSED = 4010,
+    NOT_ALLOWED = 4011,
+    ALREADY_CONNECTED = 4012,
+    NOT_IDENTIFIED = 4013
 }
 
 export enum WSEvents {
