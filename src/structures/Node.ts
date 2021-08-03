@@ -236,7 +236,6 @@ export class Node {
             switch (payload.op) {
                 // @ts-ignore
                 case WSOpCodes.HELLO:
-                    this.manager.emit("nodeHello", this);
                     this.socket.send(JSON.stringify({ op: WSOpCodes.IDENTIFY }));
                     break;
 

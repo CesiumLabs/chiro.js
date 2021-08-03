@@ -23,13 +23,6 @@ export interface Manager {
     on(event: "nodeConnect", listener: (node: Node) => void): this;
 
     /**
-     * An event emitted before [nodeConnect] and [ready].
-     * @event Manager#nodeHelo
-     * @param {Node} node Nexus Node.
-     */
-    on(event: "nodeHello", listener: (node: Node) => void): this;
-
-    /**
      * Emitted when the node gets reconnected.
      * @event Manager#nodeReconnect
      * @param {Node} node Nexus Node
