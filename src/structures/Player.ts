@@ -140,7 +140,7 @@ export class Player {
         if (!this.voiceChannel) throw new ChiroError("No voice channel has been set for the player to connect.");
         await this.node.makeRequest("POST",`api/subscription/${this.guild}/${this.voiceChannel}`);
         await this.setVolume(volume || 100);
-        this.state = "connecting";
+        this.state = "connected";
         return this;
     }
 
@@ -162,20 +162,8 @@ export class Player {
      */
     public async play() {
         if (!this.queue.current) throw new ChiroError("Queue is empty to play!");
-        if (this.state == "disconnected") await this.connect();
-        
-        return await new Promise((resolve, reject) => {
-            if (this.state == "connected") this.sendPlayPost(this.queue.current).then(() => resolve(null), reject);
-            else {
-                const connectInterval = setInterval(() => {
-                    if (this.state == "connected") this.sendPlayPost(this.queue.current).then(() => resolve(null), reject);
-                    else if (this.state == "disconnected") {
-                        clearInterval(connectInterval);
-                        return reject(new ChiroError(`Player has been disconnected but has been assigned to play!`));
-                    }
-                }, 10000);
-            }
-        });
+        if (!this.connected) throw new ChiroError("The player is still not yet connected.");
+        return this.sendPlayPost(this.queue.current);
     }
 
     /**
