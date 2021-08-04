@@ -122,6 +122,13 @@ export class Manager extends EventEmitter {
     public readonly players = new Collection<Snowflake, Player>();
 
     /**
+     * The total number of subscriptions made by all the nodes.
+     * @type {number}
+     * @name Manager#totalSubscriptions
+     */
+    public totalSubscriptions = 0;
+
+    /**
      * The client id of the bot which is been managed.
      * @type {Snowflake}
      * @name Manager#clientID

@@ -296,7 +296,8 @@ export class Node {
                     break;
 
                 case WSEvents.AUDIO_PLAYER_STATUS:
-                    // TODO(Scientific-Guy): handle player status
+                    this.subscriptions = payload.d.subscribers.self_subscription_count;
+                    this.manager.totalSubscriptions = payload.d.subscribers.total_subscription_count;
                     break;
 
                 default:
@@ -413,7 +414,6 @@ export class Node {
      */
     public async subscribe(guild: Snowflake, voiceChannel: Snowflake) {
         await this.makeRequest("POST", `api/subscription/${guild}/${voiceChannel}`);
-        this.subscriptions += 1;
     }
 
     /**
@@ -425,9 +425,6 @@ export class Node {
      */
     public async unsubscribe(guild: Snowflake, voiceChannel: Snowflake) {
         await this.makeRequest("DELETE", `api/subscription/${guild}/${voiceChannel}`);
-        // TODO(Scientific-Guy): If this node is been used wrongly and been unsubscribed many times
-        // [Node.subscriptions] can go below 0.
-        this.subscriptions -= 1;
     }
 
     /**
