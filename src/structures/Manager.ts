@@ -1,9 +1,9 @@
 import Collection from "@discordjs/collection";
 import { EventEmitter } from "events";
+import Util from "./Utils";
 import { Node } from "./Node";
 import { Player } from "./Player";
 import { ChiroError, ChiroEventError } from "./Error";
-import Util from "./Utils";
 import { ManagerOptions, PlayerOptions, SearchQuery, SearchResult, TrackData, Payload, Snowflake, NodeDisconnectContent } from "../static/Interfaces";
 
 export interface Manager {
@@ -106,7 +106,7 @@ export interface Manager {
  * @extends {EventEmitter}
  * @example
  * const manager = new Manager({
- *     node: { host: "localhost", port: 3000, password: "SwagLordNitroUser12345" },
+ *     nodes: [{ host: "localhost", port: 3000, password: "SwagLordNitroUser12345" }],
  *     onData(id, payload) {
  *          client.guilds.cache.get(id).shards.send(payload);
  *     }
@@ -154,7 +154,7 @@ export class Manager extends EventEmitter {
      * @param {ManagerOptions} options The options which are necessary for the Manager.
      * @example
      * const manager = new Manager({
-     *     node: { host: "localhost", port: 3000, password: "SwagLordNitroUser12345" },
+     *     nodes: [{ host: "localhost", port: 3000, password: "SwagLordNitroUser12345" }],
      *     onData(id, payload) {
      *          client.guilds.cache.get(id).shards.send(payload);
      *     }
@@ -162,6 +162,7 @@ export class Manager extends EventEmitter {
      */
     constructor(options: ManagerOptions) {
         super();
+
         this.options = {
             nodes: [
                 {
@@ -188,12 +189,10 @@ export class Manager extends EventEmitter {
      * manager.init(client.user.id);
      */
     public init(clientID: Snowflake): this {
+        if (!clientID) throw new ChiroError("No client id has been provided.");
         if (!this.initiated) {
-            if (!clientID) throw new ChiroError("No client id has been provided.");
             this.clientID = clientID;
-
             for (const node of this.nodes.values()) node.connect();
-
             this.initiated = true;
         }
 
@@ -241,9 +240,9 @@ export class Manager extends EventEmitter {
     }
 
     /**
-     * Destroy all the Node connection.
+     * Destroy all the connection of nodes.
      */
-    public destroyNode() {
+    public destroyNodes() {
         for (const node of this.nodes.values()) node.destroy();
     }
 
@@ -269,7 +268,7 @@ export class Manager extends EventEmitter {
 
 /**
  * @typedef {Object} ManagerOptions
- * @param {NodeOptions} [node] Node Options
+ * @param {Array<NodeOptions>} [nodes] Node Options
  * @param {Snowflake} [clientID] Bot Application ID
  */
 
