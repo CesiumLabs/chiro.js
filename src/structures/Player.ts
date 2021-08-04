@@ -3,7 +3,7 @@ import { Node } from "./Node";
 import { Queue } from "./Queue";
 import { ChiroError } from "./Error";
 import { Filters } from "../static/Constants";
-import { PlayerOptions, SearchQuery, SearchResult, TrackData, Snowflake } from "../static/Interfaces";
+import { PlayerOptions, PlayOptions, SearchQuery, SearchResult, TrackData, Snowflake } from "../static/Interfaces";
 
 /**
  * The Player Class
@@ -154,12 +154,14 @@ export class Player {
 
     /**
      * Play the songs added in the queue.
+     * 
+     * @param {PlayOptions} options The voume and filter configuration.
      * @returns {Promise<void>}
      */
-    public async play() {
+    public async play(options: PlayOptions = { volume: 100 }) {
         if (!this.queue.current) throw new ChiroError("Queue is empty to play!");
         if (!this.connected) throw new ChiroError("The player is still not yet connected.");
-        return this.sendPlayPost(this.queue.current);
+        return this.sendPlayPost(this.queue.current, options);
     }
 
     /**
@@ -168,8 +170,14 @@ export class Player {
      * @param {TrackData} track Track to Play the song
      * @private
      */
-    private async sendPlayPost(track: TrackData) {
-        await this.node.makeRequest("POST", `api/player/${this.guild}`, { track: { url: track.url } });
+    private async sendPlayPost(track: TrackData, options: PlayOptions) {
+        const body: any = {
+            track: { url: track.url },
+            config: { volume: options.volume || 100 }
+        };
+
+        if (options.filter) body.config.encoded_args = ['-af', options.filter];
+        await this.node.makeRequest("POST", `api/player/${this.guild}`, body);
         this.playing = true;
     }
 

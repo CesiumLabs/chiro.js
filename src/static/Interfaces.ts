@@ -1,4 +1,4 @@
-import { WSEvents, WSOpCodes } from "./Constants";
+import { WSEvents, WSOpCodes, Filters } from "./Constants";
 
 /**
  * @typedef Payload
@@ -29,6 +29,11 @@ export interface PlayerOptions {
     textChannel: Snowflake;
     /** Voice Channel for client to connect */
     voiceChannel: Snowflake;
+}
+
+export interface PlayOptions {
+    filter?: Filters,
+    volume?: number
 }
 
 export interface NodeOptions {
