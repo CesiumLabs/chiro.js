@@ -4,7 +4,7 @@ import { Node } from "./Node";
 import { Player } from "./Player";
 import { ChiroError, ChiroEventError } from "./Error";
 import { resolveTracks } from "./Utils";
-import { ManagerOptions, PlayerOptions, SearchQuery, SearchResult, TrackData, Payload, Snowflake, NodeDisconnectContent } from "../Static/Interfaces";
+import { ManagerOptions, PlayerOptions, SearchQuery, SearchResult, TrackData, Payload, Snowflake, NodeDisconnectContent } from "../static/Interfaces";
 
 export interface Manager {
     /**

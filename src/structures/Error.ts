@@ -1,5 +1,5 @@
 import { Player } from "./Player";
-import { Payload } from "../Static/Interfaces";
+import { Payload } from "../static/Interfaces";
 
 // The error kind of the ChiroEventError.
 export enum ChiroEventErrorKind {

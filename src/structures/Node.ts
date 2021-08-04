@@ -4,8 +4,8 @@ import { inspect } from "util";
 import { Manager } from "./Manager";
 import { Player } from "./Player";
 import { ChiroError, ChiroEventError, ChiroEventErrorKind } from "./Error";
-import { NodeOptions, Payload, TrackData } from "../Static/Interfaces";
-import { WSEvents, WSOpCodes } from "../Static/Constants";
+import { NodeOptions, Payload, TrackData } from "../static/Interfaces";
+import { WSEvents, WSOpCodes } from "../static/Constants";
 
 /**
  * The Node class which does the api management.

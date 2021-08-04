@@ -1,4 +1,4 @@
-import { TrackData } from "../Static/Interfaces";
+import { TrackData } from "../static/Interfaces";
 
 /**
  * The Queue Structure for the Player.

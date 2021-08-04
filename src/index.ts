@@ -5,5 +5,5 @@ export { Node } from "./structures/Node";
 export { Queue } from "./structures/Queue";
 
 // Exporting Interfaces and Constants
-export * from "./Static/Interfaces";
-export * from "./Static/Constants";
+export * from "./static/Interfaces";
+export * from "./static/Constants";

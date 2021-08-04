@@ -1,4 +1,4 @@
-import { SearchResult, TrackData, Snowflake } from "../Static/Interfaces";
+import { SearchResult, TrackData, Snowflake } from "../static/Interfaces";
 
 /**
  * Internal Method to Resolve Search Result from nexus into Interface SearchResult

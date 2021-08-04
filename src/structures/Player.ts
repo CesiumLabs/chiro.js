@@ -2,8 +2,8 @@ import { Manager } from "./Manager";
 import { Node } from "./Node";
 import { Queue } from "./Queue";
 import { ChiroError, ChiroEventError, ChiroEventErrorKind } from "./Error";
-import { Filters } from "../Static/Constants";
-import { PlayerOptions, SearchQuery, SearchResult, TrackData, Snowflake } from "../Static/Interfaces";
+import { Filters } from "../static/Constants";
+import { PlayerOptions, SearchQuery, SearchResult, TrackData, Snowflake } from "../static/Interfaces";
 
 /**
  * The Player Class
