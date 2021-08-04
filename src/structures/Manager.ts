@@ -258,11 +258,10 @@ export class Manager extends EventEmitter {
 
     /**
      * Returns a node with less resources consumed
-     * @type {Node}
+     * @type {Node|null}
      */
-    public get node() {
-        // @todo(DevAndromeda): change this to free node
-        return this.nodes.first();
+    public get node(): Node | null {
+        return this.nodes.find(n => n.subscribed);
     }
 }
 
