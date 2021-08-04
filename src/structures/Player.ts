@@ -1,7 +1,7 @@
 import { Manager } from "./Manager";
 import { Node } from "./Node";
 import { Queue } from "./Queue";
-import { ChiroError, ChiroEventError, ChiroEventErrorKind } from "./Error";
+import { ChiroError } from "./Error";
 import { Filters } from "../static/Constants";
 import { PlayerOptions, SearchQuery, SearchResult, TrackData, Snowflake } from "../static/Interfaces";
 
