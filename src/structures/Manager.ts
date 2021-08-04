@@ -150,13 +150,6 @@ export class Manager extends EventEmitter {
     private initiated = false;
 
     /**
-     * Nexus Access Token for the REST API calls.
-     * @type {string}
-     * @name Manager#accessToken
-     */
-    public accessToken: string;
-
-    /**
      * Creates new Manager Instance
      * @param {ManagerOptions} options The options which are necessary for the Manager.
      * @example
