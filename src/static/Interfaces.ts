@@ -22,11 +22,11 @@ export interface ManagerOptions {
     onData(id: Snowflake, payload: Payload): void;
 }
 
-export interface PlayerOptions {
+export interface PlayerOptions<T = unknown> {
     /** Server/Guild ID */
     guild: Snowflake;
-    /** Text Channel to send message in */
-    textChannel: Snowflake;
+    /** Some metadata */
+    metadata: T;
     /** Voice Channel for client to connect */
     voiceChannel: Snowflake;
 }

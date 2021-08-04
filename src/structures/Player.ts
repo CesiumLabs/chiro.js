@@ -8,7 +8,7 @@ import { PlayerOptions, PlayOptions, SearchQuery, SearchResult, TrackData, Snowf
 /**
  * The Player Class
  */
-export class Player {
+export class Player<T = unknown> {
     /**
      * Queue for the player.
      * @type {Queue}
@@ -67,10 +67,10 @@ export class Player {
 
     /**
      * The text channel for the player.
-     * @type {string|null}
-     * @name Player#textChannel
+     * @type {T}
+     * @name Player#metadata
      */
-    public textChannel: string | null = null;
+    public metadata: T;
 
     /**
      * The current state of the player.
@@ -88,14 +88,13 @@ export class Player {
      * @param {PlayerOptions} options The options nexessary for the player.
      * @param {Manager} manager The manager for the player.
      */
-    constructor(options: PlayerOptions, public manager: Manager) {
+    constructor(options: PlayerOptions<T>, public manager: Manager) {
         if (!manager) throw new ChiroError("Invalid manager has been provided for Player.");
-        if (manager.players.has(options.guild)) return manager.players.get(options.guild);
 
         this.guild = options.guild;
         this.node = this.manager.node;
         if (options.voiceChannel) this.voiceChannel = options.voiceChannel;
-        if (options.textChannel) this.textChannel = options.textChannel;
+        if (options.metadata) this.metadata = options.metadata;
     }
 
     /**
@@ -257,7 +256,7 @@ export class Player {
 /**
  * @typedef {Object} PlayerOptions
  * @param {Snowflake} guild ID of the guild
- * @param {Snowflake} textChannel ID of text channel
+ * @param {Snowflake} metadata ID of text channel
  * @param {Snowflake} voiceChannel ID of voice channel
  */
 
