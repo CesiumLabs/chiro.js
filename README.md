@@ -65,7 +65,7 @@ client.on("message", async (message) => {
 
         const response = await player.search({ query: "play that funky music" });
         player.queue.add(response.tracks[0]);
-        await player.play();
+        await player.connect().then(p => p.play());
     }
 });
 
