@@ -131,13 +131,11 @@ export class Player {
 
     /**
      * Create a voice channel Subscription to nexus.
-     * @param {number} volume The volume the player should connect with.
      * @returns {Promise<Player>}
      */
-    public async connect(volume?: number) {
+    public async connect() {
         if (!this.voiceChannel) throw new ChiroError("No voice channel has been set for the player to connect.");
         await this.node.subscribe(this.guild, this.voiceChannel);
-        await this.setVolume(volume || 100);
         this.state = "connected";
         return this;
     }
@@ -253,7 +251,6 @@ export class Player {
  * @param {Snowflake} guild ID of the guild
  * @param {Snowflake} textChannel ID of text channel
  * @param {Snowflake} voiceChannel ID of voice channel
- * @param {number} [volume] Initial volume
  */
 
 /**

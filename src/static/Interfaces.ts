@@ -29,8 +29,6 @@ export interface PlayerOptions {
     textChannel: Snowflake;
     /** Voice Channel for client to connect */
     voiceChannel: Snowflake;
-    /** Initial volume set for the client */
-    volume?: number;
 }
 
 export interface NodeOptions {
