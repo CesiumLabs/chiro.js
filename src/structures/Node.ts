@@ -4,13 +4,20 @@ import { inspect } from "util";
 import { Manager } from "./Manager";
 import { Player } from "./Player";
 import { ChiroError, ChiroEventError, ChiroEventErrorKind } from "./Error";
-import { NodeOptions, Payload, TrackData } from "../static/Interfaces";
+import { NodeOptions, Payload, TrackData, Snowflake } from "../static/Interfaces";
 import { WSEvents, WSOpCodes } from "../static/Constants";
 
 /**
  * The Node class which does the api management.
  */
 export class Node {
+    /**
+     * Boolean stating is the node subscribed or not.
+     * @type {boolean}
+     * @name Node#subscribed
+     */
+    public subscribed = false;
+
     /**
      * Websocket of the node.
      * @type {WebSocket | null}
@@ -80,8 +87,9 @@ export class Node {
      * The constructor for the node.
      * @param {NodeOptions} options The options required for the Node.
      * @param {Manager} manager The manager for this node.
+     * @param {number} id The id for the Node for debugging.
      */
-    constructor(options: NodeOptions, public manager: Manager) {
+    constructor(options: NodeOptions, public manager: Manager, public id: number) {
         if (!manager) throw new ChiroError("Invalid manager has been provided for Node.");
         if (manager.node) return manager.node;
 
@@ -383,6 +391,32 @@ export class Node {
             if (!data || !stringified.startsWith("{")) return reject(new ChiroError("Improper data sent to send in the WS."));
             this.socket.send(stringified, (error: Error) => (error ? reject(error) : resolve(true)));
         });
+    }
+
+    /**
+     * Subscribe to the guild and the voice channel.
+     * 
+     * @param {Snowflake} guild The id of the guild.
+     * @param {Snowflake} voiceChannel The id of the voice channel.
+     * @returns {Promise<void>}
+     */
+    public async subscribe(guild: Snowflake, voiceChannel: Snowflake) {
+        if (this.subscribed) throw new ChiroError(`Attempting subscribe to a node ${this.id} which is already subscribed!`);
+        await this.makeRequest("POST", `api/subscription/${guild}/${voiceChannel}`);
+        this.subscribed = true;
+    }
+
+    /**
+     * Unsubscribe to the guild and the voice channel.
+     * 
+     * @param {Snowflake} guild The id of the guild.
+     * @param {Snowflake} voiceChannel The id of the voice channel.
+     * @returns {Promise<void>}
+     */
+    public async unsubscribe(guild: Snowflake, voiceChannel: Snowflake) {
+        if (!this.subscribed) return;
+        await this.makeRequest("DELETE", `api/subscription/${guild}/${voiceChannel}`);
+        this.subscribed = false;
     }
 }
 

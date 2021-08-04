@@ -60,10 +60,10 @@ export class Player {
 
     /**
      * The voice channel.
-     * @type {string|null}
+     * @type {Snowflake|null}
      * @name Player#voiceChannel
      */
-    public voiceChannel: string | null = null;
+    public voiceChannel: Snowflake | null = null;
 
     /**
      * The text channel for the player.
@@ -136,7 +136,7 @@ export class Player {
      */
     public async connect(volume?: number) {
         if (!this.voiceChannel) throw new ChiroError("No voice channel has been set for the player to connect.");
-        await this.node.makeRequest("POST", `api/subscription/${this.guild}/${this.voiceChannel}`);
+        await this.node.subscribe(this.guild, this.voiceChannel);
         await this.setVolume(volume || 100);
         this.state = "connected";
         return this;
@@ -149,7 +149,7 @@ export class Player {
     public async disconnect(): Promise<this> {
         if (!this.voiceChannel) return this;
         if (this.playing) this.stop();
-        await this.node.makeRequest("DELETE", `api/subscription/${this.guild}/${this.voiceChannel}`);
+        await this.node.unsubscribe(this.guild, this.voiceChannel);
         this.voiceChannel = null;
         this.state = "disconnected";
     }

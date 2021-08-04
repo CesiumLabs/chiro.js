@@ -185,7 +185,7 @@ export class Manager extends EventEmitter {
             ...options
         };
 
-        this.options.nodes.forEach((m, i) => this.nodes.set(i, new Node(m, this)));
+        this.options.nodes.forEach((m, i) => this.nodes.set(i, new Node(m, this, i)));
     }
 
     /**
@@ -266,11 +266,10 @@ export class Manager extends EventEmitter {
 
     /**
      * Returns a node with less resources consumed
-     * @type {Node}
+     * @type {Node|null}
      */
-    public get node() {
-        // @todo(DevAndromeda): change this to free node
-        return this.nodes.first();
+    public get node(): Node | null {
+        return this.nodes.find(n => !n.subscribed);
     }
 }
 
