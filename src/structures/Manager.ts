@@ -178,7 +178,7 @@ export class Manager extends EventEmitter {
             ...options
         };
 
-        if (!this.options.nodes.length) throw new ChiroError("Atleast one node is needed for manager!")
+        if (!this.options.nodes.length) throw new ChiroError("Atleast one node is needed for manager!");
         this.options.nodes.forEach((m, i) => this.nodes.set(i, new Node(m, this, i)));
     }
 
@@ -263,7 +263,7 @@ export class Manager extends EventEmitter {
      */
     public get node(): Node | null {
         let smallest: Node | null = null;
-        this.nodes.forEach(n => n.subscriptions < smallest?.subscriptions ? smallest = n : null);
+        this.nodes.forEach((n) => (n.subscriptions < smallest?.subscriptions ? (smallest = n) : null));
         return smallest;
     }
 }
