@@ -83,6 +83,9 @@ export class Node {
      */
     private reconnectAttempts: number = 1;
 
+    #pingLastSent: number;
+    #pingLastReceived: number;
+
     /**
      * The constructor for the node.
      * @param {NodeOptions} options The options required for the Node.
@@ -131,7 +134,12 @@ export class Node {
         this.socket.on("error", this.error.bind(this));
 
         if (typeof this.pingInterval == "number") {
-            const timer: NodeJS.Timer = setInterval(() => (this.connected ? this.send({ op: WSOpCodes.PING }) : clearInterval(timer)), this.pingInterval).unref();
+            const timer: NodeJS.Timer = setInterval(() => {
+                if (this.connected) {
+                    this.send({ op: WSOpCodes.PING });
+                    this.#pingLastSent = Date.now();
+                } else clearInterval(timer)
+            }, this.pingInterval).unref();
         }
     }
 
@@ -252,6 +260,9 @@ export class Node {
                     this.manager.options.onData(payload.d.d.guild_id, payload.d);
                     break;
 
+                case WSOpCodes.PONG:
+                    this.#pingLastReceived = Date.now();
+                    break;
                 default:
                     this.manager.emit("nodeUnknownEvent", payload);
             }
@@ -417,6 +428,14 @@ export class Node {
         if (!this.subscribed) return;
         await this.makeRequest("DELETE", `api/subscription/${guild}/${voiceChannel}`);
         this.subscribed = false;
+    }
+
+    /**
+     * The websocket latency
+     * @type {number}
+     */
+    public get ping() {
+        return this.#pingLastReceived - this.#pingLastSent;
     }
 }
 
