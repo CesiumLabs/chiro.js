@@ -259,12 +259,12 @@ export class Manager extends EventEmitter {
 
     /**
      * Returns a node with less resources consumed
-     * @type {Node|null}
+     * @type {Node}
      */
-    public get node(): Node | null {
-        let smallest: Node | null = null;
-        this.nodes.forEach((n) => (n.subscriptions < smallest?.subscriptions ? (smallest = n) : null));
-        return smallest;
+    public get node(): Node {
+        let lowest: Node = this.nodes.first();
+        this.nodes.forEach((n) => (n.subscriptions < lowest.subscriptions ? (lowest = n) : null));
+        return lowest;
     }
 }
 
