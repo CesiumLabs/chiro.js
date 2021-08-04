@@ -37,6 +37,14 @@ export interface Manager {
     on(event: "nodeUnknownEvent", listener: (payload: Payload) => void): this;
 
     /**
+     * Emitted when the node connection receives a payload.
+     * @event Manager#nodeRawEvent
+     * @param {Node} node The node who received this payload.
+     * @param {Payload} payload The payload recieved from the ws api.
+     */
+    on(event: "nodeRawEvent", listener: (node: Node, data: Payload) => void): this;
+
+    /**
      * Emitted when Nexus is ready to play.
      * @event Manager#ready
      */

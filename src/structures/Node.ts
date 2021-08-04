@@ -230,6 +230,9 @@ export class Node {
         else if (d instanceof ArrayBuffer) d = Buffer.from(d);
 
         const payload: Payload = JSON.parse(d.toString());
+
+        this.manager.emit("nodeRawEvent", this, payload);
+
         if (payload.op !== undefined) {
             switch (payload.op) {
                 // @ts-ignore
