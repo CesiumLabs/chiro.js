@@ -138,7 +138,7 @@ export class Node {
                 if (this.connected) {
                     this.send({ op: WSOpCodes.PING });
                     this.#pingLastSent = Date.now();
-                } else clearInterval(timer)
+                } else clearInterval(timer);
             }, this.pingInterval).unref();
         }
     }
@@ -406,7 +406,7 @@ export class Node {
 
     /**
      * Subscribe to the guild and the voice channel.
-     * 
+     *
      * @param {Snowflake} guild The id of the guild.
      * @param {Snowflake} voiceChannel The id of the voice channel.
      * @returns {Promise<void>}
@@ -419,7 +419,7 @@ export class Node {
 
     /**
      * Unsubscribe to the guild and the voice channel.
-     * 
+     *
      * @param {Snowflake} guild The id of the guild.
      * @param {Snowflake} voiceChannel The id of the voice channel.
      * @returns {Promise<void>}
