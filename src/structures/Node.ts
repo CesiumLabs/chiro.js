@@ -19,6 +19,13 @@ export class Node {
     public socket: WebSocket | null = null;
 
     /**
+     * Nexus Access Token for the REST API calls.
+     * @type {string}
+     * @name Node#accessToken
+     */
+    public accessToken: string;
+
+    /**
      * The base url where the node fetches.
      * @type {string}
      * @name Node#baseURL
@@ -138,7 +145,7 @@ export class Node {
         clearTimeout(this.reconnectTimeout);
 
         this.manager.emit("nodeDisconnect", this);
-        this.manager.destroyNode();
+        this.manager.destroyNodes();
     }
 
     /**
@@ -153,7 +160,7 @@ export class Node {
             method,
             body: body ? JSON.stringify(body) : null,
             headers: {
-                Authorization: this.manager.accessToken,
+                Authorization: this.accessToken,
                 "Content-Type": "application/json"
             }
         });
@@ -243,7 +250,7 @@ export class Node {
             const player = this.manager.players.get(payload.d.guild_id);
             switch (payload.t) {
                 case WSEvents.READY:
-                    this.manager.accessToken = payload.d.access_token;
+                    this.accessToken = payload.d.access_token;
                     this.manager.emit("ready");
                     break;
 
@@ -371,7 +378,7 @@ export class Node {
             const stringified = JSON.stringify(data);
             if (!this.connected) return resolve(false);
             if (!data || !stringified.startsWith("{")) return reject(new ChiroError("Improper data sent to send in the WS."));
-            this.socket.send(stringified, (error) => (error ? reject(error) : resolve(true)));
+            this.socket.send(stringified, (error: Error) => (error ? reject(error) : resolve(true)));
         });
     }
 }
