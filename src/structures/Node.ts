@@ -13,44 +13,50 @@ import { WSEvents, WSOpCodes } from "../static/Constants";
 export class Node {
     /**
      * Websocket of the node.
-     * @type {WebSocket}
+     * @type {WebSocket | null}
+     * @name Node#socket
      */
     public socket: WebSocket | null = null;
 
     /**
      * The base url where the node fetches.
      * @type {string}
+     * @name Node#baseURL
      */
     public baseURL: string;
 
     /**
      * The password for the node.
      * @type {string}
+     * @name Node#password
      */
     public password: string;
 
     /**
      * The ping interval for the Node, if needed.
      * @type {number | undefined}
+     * @name Node#pingInterval
      */
     public pingInterval?: number;
 
     /**
      * The number of retries done by the node.
      * @type {number | undefined}
+     * @name Node#retryAmount
      */
     public retryAmount?: number;
 
     /**
      * The amount of time in milliseconds to set interval on each retry.
      * @type {number | undefined}
+     * @name Node#retryDelay
      */
     public retryDelay?: number;
 
     /**
      * Reconnect Timeout.
      * @type {NodeJS.Timeout}
-     * @ignore
+     * @name Node#reconnectTimeout
      * @private
      */
     private reconnectTimeout?: NodeJS.Timeout;
@@ -58,15 +64,13 @@ export class Node {
     /**
      * Number of reconnect attempts.
      * @type {number}
-     * @ignore
+     * @name Node#reconnectAttempts
      * @private
      */
     private reconnectAttempts: number = 1;
 
     /**
      * The constructor for the node.
-     *
-     * @hideconstructor
      * @param {NodeOptions} options The options required for the Node.
      * @param {Manager} manager The manager for this node.
      */
@@ -92,9 +96,7 @@ export class Node {
 
     /**
      * Returns a boolean stating is the socket connected or not.
-     *
-     * @ignore
-     * @returns {boolean}
+     * @type {boolean}
      */
     public get connected(): boolean {
         return this.socket ? this.socket.readyState === WebSocket.OPEN : false;
@@ -102,7 +104,6 @@ export class Node {
 
     /**
      * Creates a WS connection with the Websocket API.
-     * @ignore
      */
     public connect() {
         if (this.connected) return;
@@ -142,7 +143,6 @@ export class Node {
 
     /**
      * Make a request to the Nexus Api.
-     *
      * @param {string} method The type of api request to be done.
      * @param {string} path The api url's path.
      * @param {Object} body The body of the request.
@@ -164,9 +164,6 @@ export class Node {
 
     /**
      * Reconnect in to the Websocket if the connection fails.
-     *
-     * @hidden
-     * @ignore
      * @private
      */
     private reconnect() {
@@ -188,9 +185,7 @@ export class Node {
 
     /**
      * Open event for the websocket api.
-     *
      * @protected
-     * @ignore
      */
     protected open() {
         if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout);
@@ -199,11 +194,9 @@ export class Node {
 
     /**
      * Close event for the websocket api.
-     *
      * @param {number} code Close code from the ws api.
      * @param {string} reason Reason for the closinf the ws connection.
      * @protected
-     * @ignore
      */
     protected close(code: number, reason: string) {
         this.manager.emit("nodeDisconnect", this, { code, reason });
@@ -212,10 +205,8 @@ export class Node {
 
     /**
      * Error event for the websocket api.
-     *
      * @param {Error} error Error from the socket.
      * @protected
-     * @ignore
      */
     protected error(error: Error) {
         if (!error) return;
@@ -224,10 +215,8 @@ export class Node {
 
     /**
      * Message event from the websocket api.
-     *
      * @param {Buffer | string} d Data Buffer from the api.
      * @protected
-     * @ignore
      */
     protected message(d: Buffer | string) {
         if (Array.isArray(d)) d = Buffer.concat(d);
@@ -290,10 +279,8 @@ export class Node {
 
     /**
      * Handle all kind of track events.
-     *
      * @param {Payload} payload Payload from the websocket api.
      * @protected
-     * @ignore
      */
     protected handleTrackEvent(payload: Payload) {
         const player = this.manager.players.get(payload.d.guild_id);
@@ -322,12 +309,10 @@ export class Node {
 
     /**
      * Emit event for the TRACK_END event.
-     *
      * @param {Player} player The player.
      * @param {TrackData} track The data of the track.
      * @param {Payload} payload The payload from the ws api.
      * @protected
-     * @ignore
      */
     protected trackEnd(player: Player, track: TrackData, payload: Payload) {
         if (!player.queue.length) return this.queueEnd(player, payload);
@@ -353,11 +338,9 @@ export class Node {
 
     /**
      * Emits the `queueEnd` event in the Manager.
-     *
      * @param {Player} player The player.
      * @param {Payload} payload The payload sent by the ws api.
      * @protected
-     * @ignore
      */
     protected queueEnd(player: Player, payload: Payload) {
         this.manager.emit("queueEnd", player);
@@ -365,9 +348,8 @@ export class Node {
 
     /**
      * Update the player's data.
-     *
-     * @param player The player.
-     * @param payload The payload data to be sent while updating.
+     * @param {Player} player The player.
+     * @param {Payload} payload The payload data to be sent while updating.
      * @protected
      */
     protected updatePlayerData(player: Player, payload: Payload) {
@@ -378,7 +360,6 @@ export class Node {
 
     /**
      * Send payload data to the nexus using ws.
-     *
      * @param {Object} data Payload to send to WS
      * @returns {Promise<boolean>}
      * @example

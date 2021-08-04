@@ -12,54 +12,63 @@ export class Player {
     /**
      * Queue for the player.
      * @type {Queue}
+     * @name Player#queue
      */
     public queue: Queue = new Queue();
 
     /**
      * Boolean stating to repeat the track or not.
      * @type {boolean}
+     * @name Player#trackRepeat
      */
     public trackRepeat = false;
 
     /**
      * Boolean stating to repeat the queue or not.
      * @type {boolean}
+     * @name Player#queueRepeat
      */
     public queueRepeat = false;
 
     /**
      * Boolean stating is the player playing or not.
      * @type {boolean}
+     * @name Player#playing
      */
     public playing = false;
 
     /**
      * The volume of the player.
      * @type {number}
+     * @name Player#volume
      */
     public volume: number;
 
     /**
      * The node of the player.
      * @type {Node}
+     * @name Player#node
      */
     public node: Node;
 
     /**
      * Guild ID.
      * @type Snowflake
+     * @name Player#guild
      */
     public guild: Snowflake;
 
     /**
      * The voice channel.
-     * @type {string}
+     * @type {string|null}
+     * @name Player#voiceChannel
      */
     public voiceChannel: string | null = null;
 
     /**
      * The text channel for the player.
-     * @type {string}
+     * @type {string|null}
+     * @name Player#textChannel
      */
     public textChannel: string | null = null;
 
@@ -69,19 +78,15 @@ export class Player {
      * connected - Connected to the player.
      * disconnected - Was connected to the player.
      * connecting - Connecting to the player.
-     *
-     * @type {"connected" | "disconnected" | "connecting"}
-     * @hidden
-     * @ignore
+     * @name Player#state
+     * @type {string}
      */
     public state: "connected" | "disconnected" | "connecting" = "connecting";
 
     /**
      * Creates a new player instance.
-     *
      * @param {PlayerOptions} options The options nexessary for the player.
      * @param {Manager} manager The manager for the player.
-     * @hideconstructor
      */
     constructor(options: PlayerOptions, public manager: Manager) {
         if (!manager) throw new ChiroError("Invalid manager has been provided for Player.");
@@ -96,6 +101,7 @@ export class Player {
     /**
      * Boolean stating is the player connected or not.
      * @readonly
+     * @type {boolean}
      */
     public get connected(): boolean {
         return this.state == "connected";
@@ -104,6 +110,7 @@ export class Player {
     /**
      * Boolean stating is the player paused or not.
      * @readonly
+     * @type {boolean}
      */
     public get paused(): boolean {
         return this.connected && !this.playing;
@@ -111,7 +118,6 @@ export class Player {
 
     /**
      * Search youtube for songs and playlists.
-     *
      * @param {SearchQuery} searchQuery The search query options object.
      * @param {Snowflake} requestor The id of the user who requested it.
      * @returns {SearchResult}
@@ -125,7 +131,6 @@ export class Player {
 
     /**
      * Create a voice channel Subscription to nexus.
-     *
      * @param {number} volume The volume the player should connect with.
      * @returns {Promise<Player>}
      */

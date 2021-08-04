@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import { Node } from "./Node";
 import { Player } from "./Player";
 import { ChiroError, ChiroEventError } from "./Error";
-import { resolveTracks } from "./Utils";
+import Util from "./Utils";
 import { ManagerOptions, PlayerOptions, SearchQuery, SearchResult, TrackData, Payload, Snowflake, NodeDisconnectContent } from "../static/Interfaces";
 
 export interface Manager {
@@ -103,7 +103,6 @@ export interface Manager {
 
 /**
  * The Manager Class which manages all the players.
- *
  * @extends {EventEmitter}
  * @example
  * const manager = new Manager({
@@ -111,36 +110,41 @@ export interface Manager {
  *     onData(id, payload) {
  *          client.guilds.cache.get(id).shards.send(payload);
  *     }
- * })
+ * });
  */
 export class Manager extends EventEmitter {
     /**
      * The Collection of Players in this Manager.
      * @type {Collection<Snowflake, Player>}
+     * @name Manager#players
      */
     public readonly players = new Collection<Snowflake, Player>();
 
     /**
      * The client id of the bot which is been managed.
      * @type {Snowflake}
+     * @name Manager#clientID
      */
     public clientID: Snowflake;
 
     /**
      * The Node of the manager.
      * @type {Node}
+     * @name Manager#node
      */
     public node: Node;
 
     /**
      * The options received from the constructor for the Manager.
      * @type {ManagerOptions}
+     * @name Manager#options
      */
     public readonly options: ManagerOptions;
 
     /**
      * Boolean stating is the Manager Class initiated or not.
      * @type {boolean}
+     * @name Manager#initiated
      * @private
      */
     private initiated = false;
@@ -148,6 +152,7 @@ export class Manager extends EventEmitter {
     /**
      * Nexus Access Token for the REST API calls.
      * @type {string}
+     * @name Manager#accessToken
      */
     public accessToken: string;
 
@@ -189,7 +194,6 @@ export class Manager extends EventEmitter {
 
     /**
      * Search youtube for songs and playlists.
-     *
      * @param {SearchQuery} searchQuery The query object.
      * @param {Snowflake} requestor The id of the user who requested it.
      * @returns {SearchResult}
@@ -201,30 +205,28 @@ export class Manager extends EventEmitter {
         const response = await this.node.makeRequest("GET", `api/tracks/search?query=${encodeURIComponent(searchQuery.query)}&identifier=${searchQuery.identifier || "ytsearch"}`).then((res) => res.json());
 
         if (!response.results) throw new ChiroError("Responded results from the server seems to be empty.");
-        return resolveTracks(response, requestor);
+        return Util.resolveTracks(response, requestor);
     }
 
     /**
      * Creates a new player instance and add it to players collection.
-     *
      * @param {PlayerOptions} options Player Options to create one, if there is no existing one.
      * @returns {Promise<Player>}
      */
     public async createPlayer(options: PlayerOptions): Promise<Player> {
-        var player = this.players.get(options.guild);
-        if (player) return player;
+        if (this.players.has(options.guild)) return this.players.get(options.guild);
 
-        var player = new Player(options, this);
+        const player = new Player(options, this);
         this.players.set(options.guild, player);
         this.emit("playerCreate", await player.connect());
+
         return player;
     }
 
     /**
      * Get a player by its guild id.
-     *
      * @param {Snowflake} guild ID of Guild.
-     * @returns {Player}
+     * @returns {Player?}
      */
     public get(guild: Snowflake): Player | undefined {
         return this.players.get(guild);
@@ -239,7 +241,6 @@ export class Manager extends EventEmitter {
 
     /**
      * Send Voice State Payload Received from Discord API to Nexus.
-     *
      * @param {Object} data The data from the event.
      * @example
      * client.on('raw', manager.updateVoiceState.bind(manager));
