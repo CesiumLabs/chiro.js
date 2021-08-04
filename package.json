@@ -40,6 +40,7 @@
   "scripts": {
     "docs": "docgen --jsdoc jsdoc.json --verbose --source src/*.ts src/**/*.ts --custom docs/index.yml --output docs/docs.json",
     "docs:test": "docgen --jsdoc jsdoc.json --verbose --source src/*.ts src/**/*.ts --custom docs/index.yml",
-    "build": "npx tsc --project tsconfig.json"
+    "build": "npx tsc --project tsconfig.json",
+    "format": "prettier --write src/**/*.ts"
   }
 }
