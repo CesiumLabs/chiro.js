@@ -274,8 +274,8 @@ export class Node {
                     break;
 
                 case WSEvents.AUDIO_PLAYER_STATUS:
-                    // TODO(Scientific-Guy): Remove this clg please.
-                    console.log(payload);
+                    // TODO(Scientific-Guy): handle player status
+                    break;
 
                 default:
                     // The only events left are track events.
