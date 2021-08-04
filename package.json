@@ -18,12 +18,17 @@
     "@babel/core": "^7.14.6",
     "@babel/preset-env": "^7.14.7",
     "@babel/preset-typescript": "^7.14.5",
+    "@favware/rollup-type-bundler": "^1.0.3",
+    "@types/node": "^16.4.10",
     "@types/node-fetch": "^2.5.12",
     "@types/ws": "^7.4.7",
     "discord.js": "^12.5.3",
     "discord.js-docgen": "discordjs/docgen#ts-patch",
+    "husky": "^7.0.1",
     "jsdoc-babel": "^0.5.0",
-    "prettier": "^2.3.2"
+    "prettier": "^2.3.2",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.3.5"
   },
   "keywords": [
     "nexus",
@@ -40,7 +45,9 @@
   "scripts": {
     "docs": "docgen --jsdoc jsdoc.json --verbose --source src/*.ts src/**/*.ts --custom docs/index.yml --output docs/docs.json",
     "docs:test": "docgen --jsdoc jsdoc.json --verbose --source src/*.ts src/**/*.ts --custom docs/index.yml",
-    "build": "npx tsc --project tsconfig.json",
-    "format": "prettier --write src/**/*.ts"
+    "build": "rimraf dist && tsc",
+    "build:check": "tsc --noEmit --incremental false",
+    "format": "prettier --write src/**/*.ts",
+    "prepublishOnly": "rollup-type-bundler -e stream"
   }
 }
