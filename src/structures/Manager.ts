@@ -88,13 +88,6 @@ export interface Manager {
     on(event: "voiceDisconnect", listener: (player: Player) => void): this;
 
     /**
-     * Emitted when a new Player is created.
-     * @event Manager#playerCreate
-     * @param {Player} player Player
-     */
-    on(event: "playerCreate", listener: (player: Player) => void): this;
-
-    /**
      * Emitted when a player is destroyed.
      * @event Manager#playerDestroy
      * @param {Player} player Old Player
@@ -234,7 +227,6 @@ export class Manager extends EventEmitter {
 
         const player = new Player(options, this);
         this.players.set(options.guild, player);
-        this.emit("playerCreate", await player.connect());
 
         return player;
     }
