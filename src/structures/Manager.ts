@@ -88,13 +88,6 @@ export interface Manager {
     on(event: "voiceDisconnect", listener: (player: Player) => void): this;
 
     /**
-     * Emitted when a new Player is created.
-     * @event Manager#playerCreate
-     * @param {Player} player Player
-     */
-    on(event: "playerCreate", listener: (player: Player) => void): this;
-
-    /**
      * Emitted when a player is destroyed.
      * @event Manager#playerDestroy
      * @param {Player} player Old Player
@@ -185,6 +178,7 @@ export class Manager extends EventEmitter {
             ...options
         };
 
+        if (!this.options.nodes.length) throw new ChiroError("Atleast one node is needed for manager!")
         this.options.nodes.forEach((m, i) => this.nodes.set(i, new Node(m, this, i)));
     }
 
@@ -233,7 +227,6 @@ export class Manager extends EventEmitter {
 
         const player = new Player(options, this);
         this.players.set(options.guild, player);
-        this.emit("playerCreate", await player.connect());
 
         return player;
     }
@@ -269,7 +262,9 @@ export class Manager extends EventEmitter {
      * @type {Node|null}
      */
     public get node(): Node | null {
-        return this.nodes.find((n) => !n.subscribed);
+        let smallest: Node | null = null;
+        this.nodes.forEach(n => n.subscriptions < smallest?.subscriptions ? smallest = n : null);
+        return smallest;
     }
 }
 

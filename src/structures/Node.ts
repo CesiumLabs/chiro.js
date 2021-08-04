@@ -12,11 +12,11 @@ import { WSEvents, WSOpCodes } from "../static/Constants";
  */
 export class Node {
     /**
-     * Boolean stating is the node subscribed or not.
-     * @type {boolean}
+     * The number of subscriptions been handled by the Node.
+     * @type {number}
      * @name Node#subscribed
      */
-    public subscribed = false;
+    public subscriptions = 0;
 
     /**
      * Websocket of the node.
@@ -412,9 +412,8 @@ export class Node {
      * @returns {Promise<void>}
      */
     public async subscribe(guild: Snowflake, voiceChannel: Snowflake) {
-        if (this.subscribed) throw new ChiroError(`Attempting subscribe to a node ${this.id} which is already subscribed!`);
         await this.makeRequest("POST", `api/subscription/${guild}/${voiceChannel}`);
-        this.subscribed = true;
+        this.subscriptions += 1;
     }
 
     /**
@@ -425,9 +424,10 @@ export class Node {
      * @returns {Promise<void>}
      */
     public async unsubscribe(guild: Snowflake, voiceChannel: Snowflake) {
-        if (!this.subscribed) return;
         await this.makeRequest("DELETE", `api/subscription/${guild}/${voiceChannel}`);
-        this.subscribed = false;
+        // TODO(Scientific-Guy): If this node is been used wrongly and been unsubscribed many times
+        // [Node.subscriptions] can go below 0.
+        this.subscriptions -= 1;
     }
 
     /**
