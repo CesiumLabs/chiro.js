@@ -261,7 +261,7 @@ export class Manager extends EventEmitter {
      * @type {Node|null}
      */
     public get node(): Node | null {
-        return this.nodes.find(n => n.subscribed);
+        return this.nodes.find(n => !n.subscribed);
     }
 }
 
