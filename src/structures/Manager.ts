@@ -177,7 +177,7 @@ export class Manager extends EventEmitter {
             ...options
         };
 
-        this.options.nodes.forEach((m, i) => this.nodes.set(i, new Node(m, this)));
+        this.options.nodes.forEach((m, i) => this.nodes.set(i, new Node(m, this, i)));
     }
 
     /**
