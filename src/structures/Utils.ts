@@ -10,21 +10,21 @@ import { SearchResult, TrackData, Snowflake } from "../Static/Interfaces";
  */
 export function resolveTracks(results: any, requestorID: Snowflake): SearchResult {
     if (!results.results.length) return { type: "NO_RESULT", tracks: [], requestorID };
-    
-    return (results.identifier === "ytsearch" ||  results.identifier == "scsearch") ?
-        { type: "SEARCH_RESULT", tracks: results.results, requestorID } : 
-        {
-            type: "PLAYLIST",
-            playlist: {
-                title: results.results[0].title,
-                id: results.results[0].id,
-                url: results.results[0].url,
-                author: results.results[0].author,
-                extractor: results.results[0].extractor,
-            },
-            tracks: results.results[0].tracks.map((track: TrackData) => encapsulateTrackData(track, requestorID)),
-            requestorID
-        }
+
+    return results.identifier === "ytsearch" || results.identifier == "scsearch"
+        ? { type: "SEARCH_RESULT", tracks: results.results, requestorID }
+        : {
+              type: "PLAYLIST",
+              playlist: {
+                  title: results.results[0].title,
+                  id: results.results[0].id,
+                  url: results.results[0].url,
+                  author: results.results[0].author,
+                  extractor: results.results[0].extractor
+              },
+              tracks: results.results[0].tracks.map((track: TrackData) => encapsulateTrackData(track, requestorID)),
+              requestorID
+          };
 }
 
 /**
@@ -45,6 +45,6 @@ function encapsulateTrackData(Track: TrackData, requestor: Snowflake): TrackData
         created_at: Track.created_at,
         extractor: Track.extractor,
         requestorID: requestor,
-        streamTime: 0,
+        streamTime: 0
     };
 }

@@ -11,7 +11,6 @@ import { WSEvents, WSOpCodes } from "../Static/Constants";
  * The Node class which does the api management.
  */
 export class Node {
-
     /**
      * Websocket of the node.
      * @type {WebSocket}
@@ -66,7 +65,7 @@ export class Node {
 
     /**
      * The constructor for the node.
-     * 
+     *
      * @hideconstructor
      * @param {NodeOptions} options The options required for the Node.
      * @param {Manager} manager The manager for this node.
@@ -81,7 +80,7 @@ export class Node {
             secure: false,
             retryAmount: 5,
             retryDelay: 30e3,
-            ...options,
+            ...options
         };
 
         this.pingInterval = options.pingInterval;
@@ -93,7 +92,7 @@ export class Node {
 
     /**
      * Returns a boolean stating is the socket connected or not.
-     * 
+     *
      * @ignore
      * @returns {boolean}
      */
@@ -108,10 +107,7 @@ export class Node {
     public connect() {
         if (this.connected) return;
 
-        this.socket = new WebSocket(
-            this.baseURL.replace('http', 'ws'),
-            { headers: { Authorization: this.password, "client-id": this.manager.clientID } }
-        );
+        this.socket = new WebSocket(this.baseURL.replace("http", "ws"), { headers: { Authorization: this.password, "client-id": this.manager.clientID } });
 
         this.socket.on("open", this.open.bind(this));
         this.socket.on("close", this.close.bind(this));
@@ -119,7 +115,7 @@ export class Node {
         this.socket.on("error", this.error.bind(this));
 
         if (typeof this.pingInterval == "number") {
-            const timer: NodeJS.Timer = setInterval(() => this.connected ? this.send({ op: WSOpCodes.PING }) : clearInterval(timer), this.pingInterval).unref();
+            const timer: NodeJS.Timer = setInterval(() => (this.connected ? this.send({ op: WSOpCodes.PING }) : clearInterval(timer)), this.pingInterval).unref();
         }
     }
 
@@ -129,7 +125,7 @@ export class Node {
     public destroy() {
         if (!this.connected) return;
 
-        this.manager.players.forEach(p => {
+        this.manager.players.forEach((p) => {
             if (p.node == this) p.destroy();
         });
 
@@ -146,25 +142,21 @@ export class Node {
 
     /**
      * Make a request to the Nexus Api.
-     * 
+     *
      * @param {string} method The type of api request to be done.
      * @param {string} path The api url's path.
      * @param {Object} body The body of the request.
      * @returns {Promise<Response>}
      */
-    public async makeRequest(
-        method: "GET" | "POST" | "PATCH" | "DELETE",
-        path: string,
-        body?: Record<string, unknown>
-    ): Promise<Response> {
+    public async makeRequest(method: "GET" | "POST" | "PATCH" | "DELETE", path: string, body?: Record<string, unknown>): Promise<Response> {
         const response = await fetch(`${this.baseURL}/${path}`, {
             method,
             body: body ? JSON.stringify(body) : null,
             headers: {
                 Authorization: this.manager.accessToken,
-                "Content-Type": "application/json",
-            },
-        }); 
+                "Content-Type": "application/json"
+            }
+        });
 
         if (!response.ok) throw new ChiroError(`${method} ${this.baseURL}/${path} sent an unusual response as ${response.status} ${response.statusText}. ${inspect(response)}`);
         return response;
@@ -172,7 +164,7 @@ export class Node {
 
     /**
      * Reconnect in to the Websocket if the connection fails.
-     * 
+     *
      * @hidden
      * @ignore
      * @private
@@ -185,7 +177,7 @@ export class Node {
                 this.manager.emit("error", new ChiroEventError(ChiroEventErrorKind.Node, new Error(`Unable to connect after ${this.retryAmount} attempts.`)));
                 return this.destroy();
             }
-            
+
             this.socket.removeAllListeners();
             this.socket = null;
             this.manager.emit("nodeReconnect", this);
@@ -196,7 +188,7 @@ export class Node {
 
     /**
      * Open event for the websocket api.
-     * 
+     *
      * @protected
      * @ignore
      */
@@ -207,7 +199,7 @@ export class Node {
 
     /**
      * Close event for the websocket api.
-     * 
+     *
      * @param {number} code Close code from the ws api.
      * @param {string} reason Reason for the closinf the ws connection.
      * @protected
@@ -220,7 +212,7 @@ export class Node {
 
     /**
      * Error event for the websocket api.
-     * 
+     *
      * @param {Error} error Error from the socket.
      * @protected
      * @ignore
@@ -232,7 +224,7 @@ export class Node {
 
     /**
      * Message event from the websocket api.
-     * 
+     *
      * @param {Buffer | string} d Data Buffer from the api.
      * @protected
      * @ignore
@@ -252,7 +244,7 @@ export class Node {
                 case WSOpCodes.VOICE_STATE_UPDATE:
                     this.manager.options.onData(payload.d.d.guild_id, payload.d);
                     break;
-                    
+
                 default:
                     this.manager.emit("nodeUnknownEvent", payload);
             }
@@ -298,7 +290,7 @@ export class Node {
 
     /**
      * Handle all kind of track events.
-     * 
+     *
      * @param {Payload} payload Payload from the websocket api.
      * @protected
      * @ignore
@@ -330,7 +322,7 @@ export class Node {
 
     /**
      * Emit event for the TRACK_END event.
-     * 
+     *
      * @param {Player} player The player.
      * @param {TrackData} track The data of the track.
      * @param {Payload} payload The payload from the ws api.
@@ -361,7 +353,7 @@ export class Node {
 
     /**
      * Emits the `queueEnd` event in the Manager.
-     * 
+     *
      * @param {Player} player The player.
      * @param {Payload} payload The payload sent by the ws api.
      * @protected
@@ -373,7 +365,7 @@ export class Node {
 
     /**
      * Update the player's data.
-     * 
+     *
      * @param player The player.
      * @param payload The payload data to be sent while updating.
      * @protected
@@ -386,7 +378,7 @@ export class Node {
 
     /**
      * Send payload data to the nexus using ws.
-     * 
+     *
      * @param {Object} data Payload to send to WS
      * @returns {Promise<boolean>}
      * @example
@@ -397,8 +389,8 @@ export class Node {
         return new Promise((resolve, reject) => {
             const stringified = JSON.stringify(data);
             if (!this.connected) return resolve(false);
-            if (!data || !stringified.startsWith("{")) return reject(new ChiroError('Improper data sent to send in the WS.')); 
-            this.socket.send(stringified, error => error ? reject(error) : resolve(true));
+            if (!data || !stringified.startsWith("{")) return reject(new ChiroError("Improper data sent to send in the WS."));
+            this.socket.send(stringified, (error) => (error ? reject(error) : resolve(true)));
         });
     }
 }
@@ -413,5 +405,5 @@ export class Node {
  * @param {number} [retryAmount] Retry Amount
  * @param {number} [retryDelay] Retry Delay
  * @param {number} [requestTimeout] Request Timeout
- * @param {number} [pingInterval] The ping interval to send pings to the gateway if needed. 
+ * @param {number} [pingInterval] The ping interval to send pings to the gateway if needed.
  */

@@ -33,7 +33,7 @@ export enum WSEvents {
     VOICE_CONNECTION_ERROR = "VOICE_CONNECTION_ERROR",
     VOICE_CONNECTION_DISCONNECT = "VOICE_CONNECTION_DISCONNECT",
     AUDIO_PLAYER_ERROR = "AUDIO_PLAYER_ERROR",
-    AUDIO_PLAYER_STATUS = "AUDIO_PLAYER_STATUS",
+    AUDIO_PLAYER_STATUS = "AUDIO_PLAYER_STATUS"
 }
 
 export enum Filters {
@@ -64,5 +64,5 @@ export enum Filters {
     chorus = "chorus=0.7:0.9:55:0.4:0.25:2",
     chorus2d = "chorus=0.6:0.9:50|60:0.4|0.32:0.25|0.4:2|1.3",
     chorus3d = "chorus=0.5:0.9:50|60|40:0.4|0.32|0.3:0.25|0.4|0.3:2|2.3|1.3",
-    fadein = "afade=t=in:ss=0:d=10",
+    fadein = "afade=t=in:ss=0:d=10"
 }

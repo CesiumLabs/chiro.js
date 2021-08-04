@@ -4,7 +4,6 @@ import { TrackData } from "../Static/Interfaces";
  * The Queue Structure for the Player.
  */
 export class Queue extends Array<TrackData> {
-
     /**
      * Current playing track.
      * @type {TrackData}
@@ -45,5 +44,4 @@ export class Queue extends Array<TrackData> {
             [this[i], this[j]] = [this[j], this[i]];
         }
     }
-
 }

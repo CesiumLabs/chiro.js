@@ -3,19 +3,12 @@ import { Node } from "./Node";
 import { Queue } from "./Queue";
 import { ChiroError, ChiroEventError, ChiroEventErrorKind } from "./Error";
 import { Filters } from "../Static/Constants";
-import {
-    PlayerOptions,
-    SearchQuery,
-    SearchResult,
-    TrackData,
-    Snowflake
-} from "../Static/Interfaces";
+import { PlayerOptions, SearchQuery, SearchResult, TrackData, Snowflake } from "../Static/Interfaces";
 
 /**
  * The Player Class
  */
 export class Player {
-
     /**
      * Queue for the player.
      * @type {Queue}
@@ -76,7 +69,7 @@ export class Player {
      * connected - Connected to the player.
      * disconnected - Was connected to the player.
      * connecting - Connecting to the player.
-     * 
+     *
      * @type {"connected" | "disconnected" | "connecting"}
      * @hidden
      * @ignore
@@ -85,7 +78,7 @@ export class Player {
 
     /**
      * Creates a new player instance.
-     * 
+     *
      * @param {PlayerOptions} options The options nexessary for the player.
      * @param {Manager} manager The manager for the player.
      * @hideconstructor
@@ -115,10 +108,10 @@ export class Player {
     public get paused(): boolean {
         return this.connected && !this.playing;
     }
-    
+
     /**
      * Search youtube for songs and playlists.
-     * 
+     *
      * @param {SearchQuery} searchQuery The search query options object.
      * @param {Snowflake} requestor The id of the user who requested it.
      * @returns {SearchResult}
@@ -132,13 +125,13 @@ export class Player {
 
     /**
      * Create a voice channel Subscription to nexus.
-     * 
+     *
      * @param {number} volume The volume the player should connect with.
      * @returns {Promise<Player>}
      */
     public async connect(volume?: number) {
         if (!this.voiceChannel) throw new ChiroError("No voice channel has been set for the player to connect.");
-        await this.node.makeRequest("POST",`api/subscription/${this.guild}/${this.voiceChannel}`);
+        await this.node.makeRequest("POST", `api/subscription/${this.guild}/${this.voiceChannel}`);
         await this.setVolume(volume || 100);
         this.state = "connected";
         return this;
@@ -168,12 +161,12 @@ export class Player {
 
     /**
      * Send POST request to NEXUS to play the song.
-     * 
+     *
      * @param {TrackData} track Track to Play the song
      * @private
      */
     private async sendPlayPost(track: TrackData) {
-        await this.node.makeRequest("POST", `api/player/${this.guild}`, { track: { url: track.url } })
+        await this.node.makeRequest("POST", `api/player/${this.guild}`, { track: { url: track.url } });
         this.playing = true;
     }
 
@@ -182,11 +175,9 @@ export class Player {
      * @param {Filters} filter Music Filter to Apply
      */
     public applyFilters(filter: Filters) {
-        return this.node
-            .makeRequest("PATCH", `api/player/${this.guild}`, { data: { encoder_args: ["-af", filter] } })
-            .then(res => {
-                if (!res.ok) this.manager.emit("playerError", res);
-            });
+        return this.node.makeRequest("PATCH", `api/player/${this.guild}`, { data: { encoder_args: ["-af", filter] } }).then((res) => {
+            if (!res.ok) this.manager.emit("playerError", res);
+        });
     }
 
     /**
@@ -194,7 +185,7 @@ export class Player {
      * @param {number} volume Volume to set.
      * @returns {Promise<void>}
      */
-    public async setVolume(volume: number)  {
+    public async setVolume(volume: number) {
         this.volume = volume;
         await this.node.makeRequest("PATCH", `api/player/${this.guild}`, { data: { volume: this.volume } });
     }
@@ -203,7 +194,7 @@ export class Player {
      * Destroy the player.
      * @returns {Promise<void>}
      */
-    public async destroy()  {
+    public async destroy() {
         if (this.playing) await this.stop();
         await this.disconnect();
         this.manager.emit("playerDestroy", this);
@@ -214,7 +205,7 @@ export class Player {
      * Clear the queue and stop the player.
      * @returns {Promise<void>}
      */
-    public async stop()  {
+    public async stop() {
         this.queue.current = null;
         this.queue.previous = null;
         this.queue.clear();
@@ -250,7 +241,6 @@ export class Player {
         this.playing = true;
         await this.node.makeRequest("PATCH", `api/player/${this.guild}`, { data: { paused: false } });
     }
-
 }
 
 /**

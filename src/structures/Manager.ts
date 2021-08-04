@@ -4,16 +4,7 @@ import { Node } from "./Node";
 import { Player } from "./Player";
 import { ChiroError, ChiroEventError } from "./Error";
 import { resolveTracks } from "./Utils";
-import {
-    ManagerOptions,
-    PlayerOptions,
-    SearchQuery,
-    SearchResult,
-    TrackData,
-    Payload,
-    Snowflake,
-    NodeDisconnectContent
-} from "../Static/Interfaces";
+import { ManagerOptions, PlayerOptions, SearchQuery, SearchResult, TrackData, Payload, Snowflake, NodeDisconnectContent } from "../Static/Interfaces";
 
 export interface Manager {
     /**
@@ -27,7 +18,7 @@ export interface Manager {
      * Emitted when the node gets reconnected.
      * @event Manager#nodeReconnect
      * @param {Node} node Nexus Node
-     */ 
+     */
     on(event: "nodeReconnect", listener: (node: Node) => void): this;
 
     /**
@@ -112,7 +103,7 @@ export interface Manager {
 
 /**
  * The Manager Class which manages all the players.
- * 
+ *
  * @extends {EventEmitter}
  * @example
  * const manager = new Manager({
@@ -179,7 +170,7 @@ export class Manager extends EventEmitter {
 
     /**
      * Initiate the manager.
-     * 
+     *
      * @param {Snowflake} clientID Bot Application ID
      * @returns {Manager}
      * @example
@@ -198,7 +189,7 @@ export class Manager extends EventEmitter {
 
     /**
      * Search youtube for songs and playlists.
-     * 
+     *
      * @param {SearchQuery} searchQuery The query object.
      * @param {Snowflake} requestor The id of the user who requested it.
      * @returns {SearchResult}
@@ -207,17 +198,15 @@ export class Manager extends EventEmitter {
      * console.log(results);
      */
     public async search(searchQuery: SearchQuery, requestor: Snowflake): Promise<SearchResult> {
-        const response = await this.node
-            .makeRequest("GET", `api/tracks/search?query=${encodeURIComponent(searchQuery.query)}&identifier=${searchQuery.identifier || 'ytsearch'}`)
-            .then(res => res.json());
+        const response = await this.node.makeRequest("GET", `api/tracks/search?query=${encodeURIComponent(searchQuery.query)}&identifier=${searchQuery.identifier || "ytsearch"}`).then((res) => res.json());
 
         if (!response.results) throw new ChiroError("Responded results from the server seems to be empty.");
-        return resolveTracks(response, requestor)
+        return resolveTracks(response, requestor);
     }
 
     /**
      * Creates a new player instance and add it to players collection.
-     * 
+     *
      * @param {PlayerOptions} options Player Options to create one, if there is no existing one.
      * @returns {Promise<Player>}
      */
@@ -233,7 +222,7 @@ export class Manager extends EventEmitter {
 
     /**
      * Get a player by its guild id.
-     * 
+     *
      * @param {Snowflake} guild ID of Guild.
      * @returns {Player}
      */
@@ -250,14 +239,13 @@ export class Manager extends EventEmitter {
 
     /**
      * Send Voice State Payload Received from Discord API to Nexus.
-     * 
+     *
      * @param {Object} data The data from the event.
      * @example
      * client.on('raw', manager.updateVoiceState.bind(manager));
      */
     public updateVoiceState(data: any) {
-        if (["VOICE_SERVER_UPDATE", "VOICE_STATE_UPDATE"].includes(data?.t)) 
-            this.node.socket.send(JSON.stringify(data));
+        if (["VOICE_SERVER_UPDATE", "VOICE_STATE_UPDATE"].includes(data?.t)) this.node.socket.send(JSON.stringify(data));
     }
 }
 

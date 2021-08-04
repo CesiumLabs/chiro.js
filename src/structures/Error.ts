@@ -11,7 +11,6 @@ export enum ChiroEventErrorKind {
 
 // The common error instance for Chiro.js library.
 export class ChiroError extends Error {
-
     name = "ChiroError";
 
     /**
@@ -21,25 +20,18 @@ export class ChiroError extends Error {
     constructor(public readonly content: string) {
         super(content);
     }
-
 }
 
 // The error instance which contains the event information.
 export class ChiroEventError extends Error {
-
     /**
      * Creates a chiro event error instance for debugging.
-     * 
+     *
      * @param {ChiroEventError} kind The event error kind.
      * @param {Payload | Error} error The error payload received from the ws api.
      * @param {Player} player The player where the error was caught.
      */
-    constructor(
-        public readonly kind: ChiroEventErrorKind,
-        public error: Payload | Error,
-        public player?: Player
-    ) {
+    constructor(public readonly kind: ChiroEventErrorKind, public error: Payload | Error, public player?: Player) {
         super(`[${kind}]: ${error}`);
     }
-
 }
