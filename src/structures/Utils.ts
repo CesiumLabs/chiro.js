@@ -1,59 +1,42 @@
-import { SearchResult, TrackData } from "../Static/Interfaces";
-import { User } from "discord.js";
+import { SearchResult, TrackData, Snowflake } from "../Static/Interfaces";
 
 /**
  * Internal Method to Resolve Search Result from nexus into Interface SearchResult
- * @param {Object} res search result
- * @param {User} requester user who searched
- * @return {SearchResult}
+ * @param {Object} results Search results from the api.
+ * @param {Snowflake} requestor The user who requested it.
+ * @returns {SearchResult}
  * @private
  * @ignore
  */
-export function ResolveTracks(res: any, requester: User) {
-    if (!res.results.length) {
-        const SearchResult: SearchResult = {
-            type: "NO_RESULT",
-            tracks: [],
-            requester: requester,
-        };
-        return SearchResult;
-    }
-    if (res.identifier === "ytsearch" || "scsearch") {
-        const SearchResult: SearchResult = {
-            type: "SEARCH_RESULT",
-            tracks: res.results,
-            requester: requester,
-        };
-        return SearchResult;
-    } else {
-        const SearchResult: SearchResult = {
+export function resolveTracks(results: any, requestorID: Snowflake): SearchResult {
+    if (!results.results.length) return { type: "NO_RESULT", tracks: [], requestorID };
+    
+    return (results.identifier === "ytsearch" ||  results.identifier == "scsearch") ?
+        { type: "SEARCH_RESULT", tracks: results.results, requestorID } : 
+        {
             type: "PLAYLIST",
             playlist: {
-                title: res.results[0].title,
-                id: res.results[0].id,
-                url: res.results[0].url,
-                author: res.results[0].author,
-                extractor: res.results[0].extractor,
+                title: results.results[0].title,
+                id: results.results[0].id,
+                url: results.results[0].url,
+                author: results.results[0].author,
+                extractor: results.results[0].extractor,
             },
-            tracks: res.results[0].tracks.map((track: TrackData) =>
-                EncapsulateTrackData(track, requester)
-            ),
-            requester: requester,
-        };
-        return SearchResult;
-    }
+            tracks: results.results[0].tracks.map((track: TrackData) => encapsulateTrackData(track, requestorID)),
+            requestorID
+        }
 }
 
 /**
  * @ignore
  * @description Internal method to encapsulate Track Data received from Nexus into {TrackData}
- * @param {TrackData} data The Track details received from Nexus
- * @param {User} requester The person who requested it
- * @return {TrackData}
+ * @param {TrackData} data The Track details received from Nexus.
+ * @param {Snowflake} requestor The id of the person who requested it.
+ * @returns {TrackData}
  * @private
  */
-function EncapsulateTrackData(Track: TrackData, requester: User) {
-    const track: TrackData = {
+function encapsulateTrackData(Track: TrackData, requestor: Snowflake): TrackData {
+    return {
         url: Track.url,
         title: Track.title,
         thumbnail: Track.thumbnail,
@@ -61,8 +44,7 @@ function EncapsulateTrackData(Track: TrackData, requester: User) {
         author: Track.author,
         created_at: Track.created_at,
         extractor: Track.extractor,
-        requested_by: requester,
-        stream_time: 0,
+        requestorID: requestor,
+        streamTime: 0,
     };
-    return track;
 }

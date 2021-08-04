@@ -1,11 +1,10 @@
 import { WSEvents, WSOpCodes } from "./Constants";
-import { Snowflake, User } from "discord.js";
 
 /**
  * @typedef Payload
- * @param {string} t Event
- * @param {string} op OPCode
- * @param {any} d data
+ * @param {string} t Event Name
+ * @param {number} op Event Op Code
+ * @param {any} d Data
  */
 export interface Payload {
     /** Event Name */
@@ -17,21 +16,19 @@ export interface Payload {
 }
 
 export interface ManagerOptions {
-    /** Node need to connect */
+    /** Options for the node which is needed to connect. */
     node?: NodeOptions;
-    /** Client ID */
-    clientId?: Snowflake;
-    /** Send payload to guild */
-    send(id: Snowflake, payload: Payload): void;
+    /** A required event to receive payload data. */
+    onData(id: Snowflake, payload: Payload): void;
 }
 
 export interface PlayerOptions {
-    /** Server/Guild Id */
+    /** Server/Guild ID */
     guild: Snowflake;
     /** Text Channel to send message in */
-    textChannel: string;
+    textChannel: Snowflake;
     /** Voice Channel for client to connect */
-    voiceChannel: string;
+    voiceChannel: Snowflake;
     /** Initial volume set for the client */
     volume?: number;
 }
@@ -40,7 +37,7 @@ export interface NodeOptions {
     /** The host for the node. */
     host: string;
     /** The port for the node. */
-    port?: number;
+    port?: number | boolean;
     /** The password for the node. */
     password?: string;
     /** Whether the host uses SSL. */
@@ -51,12 +48,14 @@ export interface NodeOptions {
     retryAmount?: number;
     /** The retryDelay for the node. */
     retryDelay?: number;
-    /** The timeout used for api calls */
+    /** The timeout used for api calls. */
     requestTimeout?: number;
+    /** The ping interval to send pings to the gateway if needed. */
+    pingInterval?: number;
 }
 
 export interface SearchQuery {
-    /** Identifier to mention what kind of search it is */
+    /** IDentifier to mention what kind of search it is */
     identifier?: "ytsearch" | "scsearch" | "ytplaylist";
     /** Search Query and can be a link in case of identifier is a ytplaylist */
     query: string;
@@ -78,9 +77,9 @@ export interface TrackData {
     /** Website track is from */
     extractor: string;
     /** Who requested this track */
-    requested_by: User;
+    requestorID: Snowflake;
     /** Seek Time only available for current playing track*/
-    stream_time: number;
+    streamTime: number;
 }
 
 export interface SearchResult {
@@ -91,7 +90,7 @@ export interface SearchResult {
     /** All tracks got from the query */
     tracks: Array<TrackData>;
     /** Who requested it */
-    requester: User;
+    requestorID: Snowflake;
 }
 
 export interface PlaylistInfo {
@@ -106,3 +105,12 @@ export interface PlaylistInfo {
     /** Source Website */
     extractor: string;
 }
+
+export interface NodeDisconnectContent { 
+    /** The code used to close the gateway. */
+    code: number;
+    /** The reason for closing the gateway. */
+    reason: string;
+}
+
+export type Snowflake = `${bigint}`;

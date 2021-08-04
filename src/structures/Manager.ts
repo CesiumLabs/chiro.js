@@ -1,317 +1,270 @@
+import Collection from "@discordjs/collection";
 import { EventEmitter } from "events";
-import { Collection, Snowflake, User } from "discord.js";
+import { Node } from "./Node";
+import { Player } from "./Player";
+import { ChiroError, ChiroEventError } from "./Error";
+import { resolveTracks } from "./Utils";
 import {
     ManagerOptions,
-    Payload,
     PlayerOptions,
     SearchQuery,
     SearchResult,
     TrackData,
+    Payload,
+    Snowflake,
+    NodeDisconnectContent
 } from "../Static/Interfaces";
-import { Node } from "./Node";
-
-import { Player } from "./Player";
-import { ResolveTracks } from "./Utils";
 
 export interface Manager {
     /**
-     * Emitted when node connection is established
+     * Emitted when the node connection is established.
      * @event Manager#nodeConnect
      * @param {Node} node Nexus Node
      */
     on(event: "nodeConnect", listener: (node: Node) => void): this;
 
     /**
-     * Emitted when node connection is disconnected
+     * Emitted when the node gets reconnected.
+     * @event Manager#nodeReconnect
+     * @param {Node} node Nexus Node
+     */ 
+    on(event: "nodeReconnect", listener: (node: Node) => void): this;
+
+    /**
+     * Emitted when the node connection is disconnected.
      * @event Manager#nodeDisconnect
      * @param {Node} node Nexus Node
+     * @param {NodeDisconnectContent} content Object containing the reason for disconnecting the node.
      */
-    on(event: "nodeDisconnect", listener: (node: Node) => void): this;
+    on(event: "nodeDisconnect", listener: (node: Node, content: NodeDisconnectContent) => void): this;
 
     /**
-     * Emitted when node connection errors
-     * @event Manager#nodeError
-     * @param {Node} node Nexus Node
+     * Emitted when the node connection receives an unknown opcode.
+     * @event Manager#nodeUnknownEvent
+     * @param {Payload} payload The payload recieved from the ws api.
      */
-    on(event: "nodeError", listener: (node: Node) => void): this;
+    on(event: "nodeUnknownEvent", listener: (payload: Payload) => void): this;
 
     /**
-     * Emitted when Nexus is Ready to play
+     * Emitted when Nexus is ready to play.
      * @event Manager#ready
      */
     on(event: "ready", listener: () => void): this;
 
     /**
-     * Emitted when track is start playing
+     * Emitted when track is started to play.
      * @event Manager#trackStart
      * @param {Player} player Player
      * @param {TrackData} Track Current Track
      */
-    on(
-        event: "trackStart",
-        listener: (player: Player, track: TrackData) => void
-    ): this;
+    on(event: "trackStart", listener: (player: Player, track: TrackData) => void): this;
 
     /**
-     * Emitted when track is ends
+     * Emitted when the track ends.
      * @event Manager#trackEnd
      * @param {Player} player Player
      * @param {TrackData} Track Ended Track
      */
-    on(
-        event: "trackEnd",
-        listener: (player: Player, track: TrackData) => void
-    ): this;
+    on(event: "trackEnd", listener: (player: Player, track: TrackData) => void): this;
 
     /**
-     * Emitted when track errors
-     * @event Manager#trackError
-     * @param {Player} player Player
-     * @param {TrackData} Track Error Track
-     */
-    on(
-        event: "trackError",
-        listener: (player: Player, track: TrackData) => void
-    ): this;
-
-    /**
-     * Emitted when Queue ends
+     * Emitted when the Queue ends.
      * @event Manager#queueEnd
      * @param {Player} player Player
      */
     on(event: "queueEnd", listener: (player: Player) => void): this;
 
     /**
-     * Emitted when Voice Connection is Ready
+     * Emitted when the Voice Connection is ready.
      * @event Manager#voiceReady
      * @param {Player} player Player
      */
     on(event: "voiceReady", listener: (player: Player) => void): this;
 
     /**
-     * Emitted when Voice Connection is disconnected
+     * Emitted when the Voice Connection is disconnected.
      * @event Manager#voiceDisconnect
      * @param {Player} player Player
      */
     on(event: "voiceDisconnect", listener: (player: Player) => void): this;
 
     /**
-     * Emitted when Voice Connection error
-     * @event Manager#voiceError
-     * @param {Player} player Player
-     * @param {Payload} payload raw payload from Nexus
-     */
-    on(
-        event: "voiceError",
-        listener: (player: Player, payload: Payload) => void
-    ): this;
-
-    /**
-     * Emitted when Audio Player Errors
-     * @event Manager#audioPlayerError
-     * @param {Player} player Player
-     * @param {Payload} payload raw payload from nexus
-     */
-    on(
-        event: "audioPlayerError",
-        listener: (player: Player, payload: Payload) => void
-    ): this;
-
-    /**
-     * Emitted when Player is created
-     * @event Manager#playerCreated
+     * Emitted when a new Player is created.
+     * @event Manager#playerCreate
      * @param {Player} player Player
      */
-    on(event: "playerCreated", listener: (player: Player) => void): this;
+    on(event: "playerCreate", listener: (player: Player) => void): this;
 
     /**
-     * Emitted when player is destroyed
+     * Emitted when a player is destroyed.
      * @event Manager#playerDestroy
      * @param {Player} player Old Player
      */
     on(event: "playerDestroy", listener: (player: Player) => void): this;
+
+    /**
+     * Emitted when there is an debuggable error caught.
+     * @event Manager#error
+     * @param {ChiroError} error The error containing details.
+     */
+    on(event: "error", listener: (error: ChiroEventError) => void): this;
 }
 
 /**
- * The Manager Class
+ * The Manager Class which manages all the players.
+ * 
  * @extends {EventEmitter}
  * @example
  * const manager = new Manager({
- *     node: {host: "localhost", port: 3000, password: "MySecurePassword"},
- *     send(id, payload){
+ *     node: { host: "localhost", port: 3000, password: "SwagLordNitroUser12345" },
+ *     onData(id, payload) {
  *          client.guilds.cache.get(id).shards.send(payload);
  *     }
  * })
  */
-
 export class Manager extends EventEmitter {
     /**
-     * The Collection of Players in this Manager
+     * The Collection of Players in this Manager.
      * @type {Collection<Snowflake, Player>}
      */
     public readonly players = new Collection<Snowflake, Player>();
 
     /**
-     * The Node
+     * The client id of the bot which is been managed.
+     * @type {Snowflake}
+     */
+    public clientID: Snowflake;
+
+    /**
+     * The Node of the manager.
      * @type {Node}
      */
     public node: Node;
 
     /**
-     * Manager class option
+     * The options received from the constructor for the Manager.
      * @type {ManagerOptions}
      */
     public readonly options: ManagerOptions;
 
     /**
-     * If Manager Class initiated or not
+     * Boolean stating is the Manager Class initiated or not.
      * @type {boolean}
      * @private
      */
     private initiated = false;
 
     /**
-     * Nexus Access Token for REST API Calls
+     * Nexus Access Token for the REST API calls.
      * @type {string}
      */
-    public access_token: string;
+    public accessToken: string;
 
     /**
      * Creates new Manager Instance
-     * @param {ManagerOptions} options Manager Options
+     * @param {ManagerOptions} options The options which are necessary for the Manager.
      * @example
      * const manager = new Manager({
-     *     node: {host: "localhost", port: 3000, password: "MySecurePassword"},
-     *     send(id, payload){
+     *     node: { host: "localhost", port: 3000, password: "SwagLordNitroUser12345" },
+     *     onData(id, payload) {
      *          client.guilds.cache.get(id).shards.send(payload);
      *     }
      * })
      */
     constructor(options: ManagerOptions) {
         super();
-
-        Player.init(this);
-        Node.init(this);
-
-        this.options = {
-            node: { identifier: "default", host: "localhost" },
-            ...options,
-        };
-
-        if (this.options.node) {
-            new Node(this.options.node);
-        }
+        this.options = { node: { identifier: "default", host: "localhost" }, ...options };
+        this.node = new Node(this.options.node, this);
     }
 
     /**
-     * Init Manager
-     * @param {Snowflake} clientId Bot Application ID
-     * @return {Manager}
+     * Initiate the manager.
+     * 
+     * @param {Snowflake} clientID Bot Application ID
+     * @returns {Manager}
      * @example
      * manager.init(client.user.id);
      */
-    public init(clientId: Snowflake): this {
-        if (this.initiated) return this;
-        if (typeof clientId !== "undefined") this.options.clientId = clientId;
-        this.node.connect();
-        this.initiated = true;
+    public init(clientID: Snowflake): this {
+        if (!this.initiated) {
+            if (!clientID) throw new ChiroError("No client id has been provided.");
+            this.clientID = clientID;
+            this.node.connect();
+            this.initiated = true;
+        }
+
         return this;
     }
 
     /**
-     * Searching or Getting YouTube songs and playlist
-     * @param {SearchQuery} SearchQuery Query Object
-     * @param {User} requester User Object
+     * Search youtube for songs and playlists.
+     * 
+     * @param {SearchQuery} searchQuery The query object.
+     * @param {Snowflake} requestor The id of the user who requested it.
      * @returns {SearchResult}
      * @example
-     * const res = await player.search({query: "Play that funky music"}, message.author);
-     * console.log(res);
+     * const results = await manager.search({ query: "Play that funky music" }, message.author);
+     * console.log(results);
      */
-    public async search(
-        SearchQuery: SearchQuery,
-        requester: User
-    ): Promise<SearchResult> {
-        return new Promise(async (resolve, reject) => {
-            const identifier = SearchQuery.identifier || "ytsearch";
-            const query = SearchQuery.query;
+    public async search(searchQuery: SearchQuery, requestor: Snowflake): Promise<SearchResult> {
+        const response = await this.node
+            .makeRequest("GET", `api/tracks/search?query=${encodeURIComponent(searchQuery.query)}&identifier=${searchQuery.identifier || 'ytsearch'}`)
+            .then(res => res.json());
 
-            const res = await this.node
-                .makeRequest(
-                    `api/tracks/search?query=${encodeURIComponent(
-                        query
-                    )}&identifier=${identifier}`,
-                    "GET"
-                )
-                .then((res) => res.json());
-
-            if (!res || !res.results) {
-                return reject(new Error("Query not found"));
-            }
-
-            const SearchResult: SearchResult = ResolveTracks(res, requester);
-            return resolve(SearchResult);
-        });
+        if (!response.results) throw new ChiroError("Responded results from the server seems to be empty.");
+        return resolveTracks(response, requestor)
     }
 
     /**
-     * Creates a player instance and add it to players collection
-     * @param {PlayerOptions} options Player Options
-     * @return {Player}
-     *
+     * Creates a new player instance and add it to players collection.
+     * 
+     * @param {PlayerOptions} options Player Options to create one, if there is no existing one.
+     * @returns {Promise<Player>}
      */
-    public create(options: PlayerOptions): Player {
-        if (this.players.has(options.guild)) {
-            return this.players.get(options.guild);
-        }
-        const player = new Player(options);
-        this.emit("playerCreate", player);
+    public async createPlayer(options: PlayerOptions): Promise<Player> {
+        var player = this.players.get(options.guild);
+        if (player) return player;
+
+        var player = new Player(options, this);
+        this.players.set(options.guild, player);
+        this.emit("playerCreate", await player.connect());
         return player;
     }
 
     /**
-     * Send Player
-     * @param {Snowflake} guild Id of Guild
-     * @return {Player}
+     * Get a player by its guild id.
+     * 
+     * @param {Snowflake} guild ID of Guild.
+     * @returns {Player}
      */
     public get(guild: Snowflake): Player | undefined {
         return this.players.get(guild);
     }
+
     /**
-     * Destroy the Node connection
+     * Destroy the Node connection.
      */
-    public destroyNode(): void {
+    public destroyNode() {
         this.node.destroy();
     }
 
     /**
-     * Send Voice State Payload Received from Discord API to Nexus
-     * @param {Object} data
+     * Send Voice State Payload Received from Discord API to Nexus.
+     * 
+     * @param {Object} data The data from the event.
      * @example
-     * client.on('raw', (d)=>{
-     *    manager.updateVoiceState(d);
-     * });
+     * client.on('raw', manager.updateVoiceState.bind(manager));
      */
-    public updateVoiceState(data: any): void {
-        if (
-            !data ||
-            !["VOICE_SERVER_UPDATE", "VOICE_STATE_UPDATE"].includes(
-                data.t || ""
-            )
-        )
-            return;
-        if (data.t === "VOICE_SERVER_UPDATE") {
+    public updateVoiceState(data: any) {
+        if (["VOICE_SERVER_UPDATE", "VOICE_STATE_UPDATE"].includes(data?.t)) 
             this.node.socket.send(JSON.stringify(data));
-        }
-        if (data.t === "VOICE_STATE_UPDATE") {
-            this.node.socket.send(JSON.stringify(data));
-        }
     }
 }
 
 /**
  * @typedef {Object} ManagerOptions
  * @param {NodeOptions} [node] Node Options
- * @param {Snowflake} [clientId] Bot Application ID
+ * @param {Snowflake} [clientID] Bot Application ID
  */
 
 /**
@@ -328,7 +281,7 @@ export class Manager extends EventEmitter {
 
 /**
  * @typedef {Object} SearchQuery
- * @param {string} identifier='ytsearch' Identifier of type of query
+ * @param {string} identifier='ytsearch' IDentifier of type of query
  * @param {string} query Query to be searched for
  */
 
@@ -337,7 +290,7 @@ export class Manager extends EventEmitter {
  * @param {SEARCH_RESULT | PLAYLIST | NO_RESULT} type Type Of Search Result
  * @param {PlaylistInfo} [playlist] Playlist info
  * @param {Array<TrackData>} Array of Tracks
- * @param {User} requester User who requested it
+ * @param {Snowflake} requestor User who requested it
  */
 
 /**
@@ -358,6 +311,6 @@ export class Manager extends EventEmitter {
  * @param {string} author Uploader of the Track
  * @param {Date} created_at Track upload date
  * @param {string} extractor Website track is fetched from
- * @param {User} requested_by User who requested it
- * @param {number} stream_time=0 Current seek of playing track
+ * @param {Snowflake} requestedBy User who requested it
+ * @param {number} streamTime=0 Current seek of playing track
  */
