@@ -16,8 +16,8 @@ export interface Payload {
 }
 
 export interface ManagerOptions {
-    /** Options for the node which is needed to connect. */
-    node?: NodeOptions;
+    /** Options for the nodes which is needed to connect. */
+    nodes?: NodeOptions[];
     /** A required event to receive payload data. */
     onData(id: Snowflake, payload: Payload): void;
 }

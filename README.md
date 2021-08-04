@@ -33,7 +33,7 @@ const Discord = require("discord.js");
 const Chiro = require("chiro.js");
 const client = new Discord.Client();
 const manager = new Chiro.Manager({    
-    node: { host: "localhost", port: 3000, password: "SwagLordNitroUser12345", secure: true },
+    nodes: [{ host: "localhost", port: 3000, password: "SwagLordNitroUser12345", secure: true }],
     onData(id, payload) {
         const guild = client.guilds.cache.get(id);
         if (guild) guild.shard.send(payload);

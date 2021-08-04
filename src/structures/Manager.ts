@@ -128,11 +128,11 @@ export class Manager extends EventEmitter {
     public clientID: Snowflake;
 
     /**
-     * The Node of the manager.
-     * @type {Node}
-     * @name Manager#node
+     * The Nodes of the manager.
+     * @type {Collection<number, Node>}
+     * @name Manager#nodes
      */
-    public node: Node;
+    public nodes = new Collection<number, Node>();
 
     /**
      * The options received from the constructor for the Manager.
@@ -169,8 +169,21 @@ export class Manager extends EventEmitter {
      */
     constructor(options: ManagerOptions) {
         super();
-        this.options = { node: { identifier: "default", host: "localhost" }, ...options };
-        this.node = new Node(this.options.node, this);
+        this.options = {
+            nodes: [
+                {
+                    identifier: "default",
+                    host: "localhost",
+                    port: 4957,
+                    pingInterval: 10000,
+                    password: "SwagLordNitroUser12345",
+                    secure: false
+                }
+            ],
+            ...options
+        };
+
+        this.options.nodes.forEach((m, i) => this.nodes.set(i, new Node(m, this)));
     }
 
     /**
@@ -185,7 +198,9 @@ export class Manager extends EventEmitter {
         if (!this.initiated) {
             if (!clientID) throw new ChiroError("No client id has been provided.");
             this.clientID = clientID;
-            this.node.connect();
+
+            for (const node of this.nodes.values()) node.connect();
+
             this.initiated = true;
         }
 
@@ -233,10 +248,10 @@ export class Manager extends EventEmitter {
     }
 
     /**
-     * Destroy the Node connection.
+     * Destroy all the Node connection.
      */
     public destroyNode() {
-        this.node.destroy();
+        for (const node of this.nodes.values()) node.destroy();
     }
 
     /**
@@ -247,6 +262,15 @@ export class Manager extends EventEmitter {
      */
     public updateVoiceState(data: any) {
         if (["VOICE_SERVER_UPDATE", "VOICE_STATE_UPDATE"].includes(data?.t)) this.node.socket.send(JSON.stringify(data));
+    }
+
+    /**
+     * Returns a node with less resources consumed
+     * @type {Node}
+     */
+    public get node() {
+        // @todo(DevAndromeda): change this to free node
+        return this.nodes.first();
     }
 }
 
