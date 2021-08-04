@@ -3,7 +3,7 @@ import { SearchResult, TrackData, Snowflake } from "../static/Interfaces";
 /**
  * Utility methods holder
  */
-export default class Util extends null {
+export default class Util {
     private constructor() {}
 
     /**

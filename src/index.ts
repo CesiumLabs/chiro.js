@@ -1,8 +1,8 @@
 // Exporting Structures
-export { Manager } from "./structures/Manager";
-export { Player } from "./structures/Player";
-export { Node } from "./structures/Node";
-export { Queue } from "./structures/Queue";
+export * from "./structures/Manager";
+export * from "./structures/Player";
+export * from "./structures/Node";
+export * from "./structures/Queue";
 
 // Utils
 export * from "./structures/Error";

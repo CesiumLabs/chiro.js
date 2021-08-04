@@ -4,6 +4,11 @@
   "description": "A easy to use client for Nexus",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "module": "dist/index.mjs",
+  "exports": {
+    "require": "./dist/index.js",
+    "import": "./dist/index.mjs"
+  },
   "author": "Rohan Kumar",
   "license": "MIT",
   "files": [
@@ -24,6 +29,7 @@
     "@types/ws": "^7.4.7",
     "discord.js": "^12.5.3",
     "discord.js-docgen": "discordjs/docgen#ts-patch",
+    "gen-esm-wrapper": "^1.1.2",
     "husky": "^7.0.1",
     "jsdoc-babel": "^0.5.0",
     "prettier": "^2.3.2",
@@ -45,9 +51,11 @@
   "scripts": {
     "docs": "docgen --jsdoc jsdoc.json --verbose --source src/*.ts src/**/*.ts --custom docs/index.yml --output docs/docs.json",
     "docs:test": "docgen --jsdoc jsdoc.json --verbose --source src/*.ts src/**/*.ts --custom docs/index.yml",
-    "build": "rimraf dist && tsc",
+    "build": "rimraf dist && tsc && npm run build:esm",
     "build:check": "tsc --noEmit --incremental false",
+    "build:bundle": "rollup-type-bundler -e stream",
+    "build:esm": "gen-esm-wrapper ./dist/index.js ./dist/index.mjs",
     "format": "prettier --write src/**/*.ts",
-    "prepublishOnly": "rollup-type-bundler -e stream"
+    "prepublishOnly": "npm run build:bundle"
   }
 }
